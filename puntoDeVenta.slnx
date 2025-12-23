@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="datos/Datos.csproj" />
+  <Project Path="Entidades/Entidades.csproj" />
+  <Project Path="Negocio/Negocio.csproj" />
+  <Project Path="puntoDeVenta/PostWPF.csproj" />
+</Solution>

@@ -1,0 +1,175 @@
+﻿<UserControl x:Class="puntoDeVenta.Views.InventarioView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:puntoDeVenta.ViewModels"
+             mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="1000">
+
+    <d:UserControl.DataContext>
+        <vm:InventarioViewModel/>
+    </d:UserControl.DataContext>
+
+    <Grid Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Gestión de Inventario" FontSize="24" FontWeight="Bold" 
+                   Foreground="{StaticResource BrushPrimario}" Margin="0,0,0,20"/>
+
+        <Grid Grid.Row="1" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                <Button Content="+ Nuevo" Command="{Binding NuevoProductoCommand}"
+                        Background="{StaticResource BrushPrimario}" Foreground="White"
+                        Height="40" Width="100" Margin="0,0,10,0" BorderThickness="0" FontWeight="SemiBold">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="20">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <Button Content="✏️ Editar" Command="{Binding EditarProductoCommand}"
+                        Background="#78909C" Foreground="White"
+                        Height="40" Width="100" Margin="0,0,10,0" BorderThickness="0" FontWeight="SemiBold">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="20">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <Button Content="🗑️ Eliminar" Command="{Binding EliminarProductoCommand}"
+                        Background="{StaticResource BrushRojoAlerta}" Foreground="White"
+                        Height="40" Width="100" Margin="0,0,10,0" BorderThickness="0" FontWeight="SemiBold">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="20">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <Button Content="⚙️ Maestros" Command="{Binding AbrirMaestrosCommand}"
+                        Background="#607D8B" Foreground="White"
+                        Height="40" Padding="15,0" Margin="10,0,0,0" BorderThickness="0" FontWeight="SemiBold">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </StackPanel>
+
+            <Button Grid.Column="2" Content="📊 Exportar Excel" Command="{Binding ExportarExcelCommand}"
+                    Background="{StaticResource BrushVerdeExito}" Foreground="White"
+                    Height="40" Padding="20,0" BorderThickness="0" FontWeight="SemiBold">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+        </Grid>
+
+        <DataGrid Grid.Row="2" ItemsSource="{Binding ListaProductos}" 
+                  SelectedItem="{Binding ProductoSeleccionadoDto}"
+                  AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
+                  GridLinesVisibility="Horizontal" Background="White" 
+                  BorderBrush="#E0E0E0" BorderThickness="1" HeadersVisibility="Column" RowHeight="35">
+
+            <DataGrid.Resources>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#E3F2FD"/>
+                    <Setter Property="Padding" Value="10"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="Foreground" Value="{StaticResource BrushPrimario}"/>
+                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                    <Setter Property="BorderBrush" Value="#BBDEFB"/>
+                </Style>
+            </DataGrid.Resources>
+
+            <DataGrid.Columns>
+
+                <DataGridTextColumn Header="Cód. Barras" Binding="{Binding CodigoBarras}" Width="110" Foreground="Gray"/>
+
+                <DataGridTextColumn Header="Producto" Binding="{Binding Nombre}" Width="*"/>
+
+                <DataGridTextColumn Header="Categoría" Binding="{Binding Categoria}" Width="120"/>
+
+                <DataGridTextColumn Header="Costo" Binding="{Binding PrecioCompra, StringFormat=C2}" Width="90" FontWeight="SemiBold">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="#D32F2F"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Padding" Value="5,0"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Header="Venta" Binding="{Binding PrecioVenta, StringFormat=C2}" Width="90" FontWeight="Bold">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="#388E3C"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Padding" Value="5,0"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Header="Margen" Binding="{Binding MargenGanancia, StringFormat=P1}" Width="80"/>
+
+                <DataGridTemplateColumn Header="Stock" Width="100">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Stock}" FontWeight="Bold"/>
+                                <TextBlock Text=" "/>
+                                <TextBlock Text="{Binding Unidad}" Foreground="Gray"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTextColumn Header="Estado" Binding="{Binding EstadoStock}" Width="110" FontWeight="Bold">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Padding" Value="5,0"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding EstadoStock}" Value="STOCK BAJO">
+                                    <Setter Property="Foreground" Value="Red"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding EstadoStock}" Value="STOCK MEDIO">
+                                    <Setter Property="Foreground" Value="Orange"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding EstadoStock}" Value="STOCK ALTO">
+                                    <Setter Property="Foreground" Value="Green"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

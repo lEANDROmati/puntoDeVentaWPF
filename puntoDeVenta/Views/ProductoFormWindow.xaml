@@ -1,0 +1,99 @@
+﻿<Window x:Class="puntoDeVenta.Views.ProductoFormWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Detalle de Producto" Height="550" Width="700"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize" WindowStyle="ToolWindow"
+        FocusManager.FocusedElement="{Binding ElementName=txtCodigo}">
+
+    <Border Background="#F5F5F5" Padding="20">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Text="Datos del Producto" FontSize="20" FontWeight="Bold" Foreground="#3F51B5" Margin="0,0,0,20"/>
+
+            <Border Grid.Row="1" Background="White" CornerRadius="10" Padding="20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,15">
+                        <TextBlock Text="Código de Barras *" FontWeight="SemiBold" Foreground="Gray"/>
+                        <TextBox x:Name="txtCodigo" Height="35" VerticalContentAlignment="Center" FontSize="14" TabIndex="0"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,15">
+                        <TextBlock Text="Nombre / Descripción *" FontWeight="SemiBold" Foreground="Gray"/>
+                        <TextBox x:Name="txtNombre" Height="35" VerticalContentAlignment="Center" FontSize="14" TabIndex="1"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,15">
+                        <TextBlock Text="Categoría *" FontWeight="SemiBold" Foreground="Gray"/>
+                        <ComboBox x:Name="cmbCategoria" Height="35" FontSize="14" TabIndex="2"
+                                  DisplayMemberPath="Nombre" SelectedValuePath="Id"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,15">
+                        <TextBlock Text="Unidad de Medida *" FontWeight="SemiBold" Foreground="Gray"/>
+                        <ComboBox x:Name="cmbUnidad" Height="35" FontSize="14" TabIndex="3"
+                                  DisplayMemberPath="Nombre" SelectedValuePath="Id"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,15">
+                        <TextBlock Text="Precio de Compra (Costo)" FontWeight="SemiBold" Foreground="Gray"/>
+                        <TextBox x:Name="txtCosto" Height="35" VerticalContentAlignment="Center" FontSize="14" TabIndex="4"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" Grid.Column="2" Margin="0,0,0,15">
+                        <TextBlock Text="Precio de Venta (Público) *" FontWeight="Bold" Foreground="#2E7D32"/>
+                        <TextBox x:Name="txtPrecio" Height="35" VerticalContentAlignment="Center" FontSize="16" FontWeight="Bold" TabIndex="5"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,0,15">
+                        <TextBlock Text="Stock Actual" FontWeight="SemiBold" Foreground="Gray"/>
+                        <TextBox x:Name="txtStock" Height="35" VerticalContentAlignment="Center" FontSize="14" TabIndex="6"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="3" Grid.Column="2" Margin="0,0,0,15">
+                        <TextBlock Text="Stock Mínimo (Alerta)" FontWeight="SemiBold" Foreground="Gray"/>
+                        <TextBox x:Name="txtStockMin" Height="35" VerticalContentAlignment="Center" FontSize="14" TabIndex="7"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="4" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,10,0,0">
+
+                        <CheckBox x:Name="chkIVA" Content="Paga IVA" IsChecked="True" Margin="0,0,20,0">
+                            <CheckBox.LayoutTransform>
+                                <ScaleTransform ScaleX="1.2" ScaleY="1.2"/>
+                            </CheckBox.LayoutTransform>
+                        </CheckBox>
+
+                        <CheckBox x:Name="chkControlarStock" Content="Controlar Stock" IsChecked="True" Margin="0,0,20,0">
+                            <CheckBox.LayoutTransform>
+                                <ScaleTransform ScaleX="1.2" ScaleY="1.2"/>
+                            </CheckBox.LayoutTransform>
+                        </CheckBox>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                <Button Content="Cancelar" IsCancel="True" Width="100" Height="40" Margin="0,0,10,0" Background="#ECEFF1" BorderBrush="#CFD8DC"/>
+                <Button Content="GUARDAR PRODUCTO" Click="BtnGuardar_Click" IsDefault="True" Width="180" Height="40" Background="#3F51B5" Foreground="White" FontWeight="Bold"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>
