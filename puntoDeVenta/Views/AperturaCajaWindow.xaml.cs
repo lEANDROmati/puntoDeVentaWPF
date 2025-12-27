@@ -1,9 +1,11 @@
-﻿using System.Windows;
+﻿using Negocio;
+using System.Windows;
 
 namespace puntoDeVenta.Views
 {
     public partial class AperturaCajaWindow : Window
     {
+        private readonly CajaService _cajaService = new CajaService();
         public decimal MontoIngresado { get; private set; }
 
         public AperturaCajaWindow()
@@ -23,13 +25,26 @@ namespace puntoDeVenta.Views
         {
             if (decimal.TryParse(txtMonto.Text, out decimal monto))
             {
-                MontoIngresado = monto;
-                this.DialogResult = true;
+                try
+                {
+                    // --- PASO CRÍTICO QUE FALTABA ---
+                    // Guardamos en la Base de Datos
+                    _cajaService.AbrirCaja(monto);
+                    // --------------------------------
+
+                    MontoIngresado = monto;
+                    this.DialogResult = true; // Cierra y avisa que todo salió bien
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error al abrir la caja: {ex.Message}");
+                    // No cerramos la ventana para que pueda intentar de nuevo
+                }
             }
             else
             {
                 MessageBox.Show("Monto inválido");
-                txtMonto.SelectAll(); // Si falla, vuelve a seleccionar para corregir rápido
+                txtMonto.SelectAll();
                 txtMonto.Focus();
             }
         }

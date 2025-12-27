@@ -19,6 +19,7 @@ namespace Negocio
 
         // 1. Obtener lista completa (con relaciones para ver nombres de Categoria/Unidad)
         
+        
         public List<ProductoDto> GetAll()
         {
             // 1. Traemos los datos crudos de la BD
@@ -42,7 +43,8 @@ namespace Negocio
                     Unidad = p.UnidadMedida != null ? p.UnidadMedida.Abreviatura : "",
                     PrecioCompra = p.PrecioCompra,
                     PrecioVenta = p.PrecioVenta,
-                    Stock = p.Stock
+                    Stock = p.Stock,
+                    StockMinimo = p.StockMinimo
                 };
 
                 // --- LÓGICA DE NEGOCIO (Aquí es donde pertenece) ---

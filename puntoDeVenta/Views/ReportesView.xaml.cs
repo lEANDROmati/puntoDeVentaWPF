@@ -1,6 +1,4 @@
-﻿using Entidades;
-using Negocio;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows;
@@ -15,16 +13,14 @@ using System.Windows.Shapes;
 
 namespace puntoDeVenta.Views
 {
-    public partial class GestionMaestrosView : UserControl
+    /// <summary>
+    /// Lógica de interacción para ReportesView.xaml
+    /// </summary>
+    public partial class ReportesView : UserControl
     {
-       
-
-        public GestionMaestrosView()
+        public ReportesView()
         {
             InitializeComponent();
-           
         }
-
-       
     }
 }

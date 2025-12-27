@@ -14,141 +14,198 @@ namespace puntoDeVenta.ViewModels
 {
     public partial class InventarioViewModel : ObservableObject
     {
-        // Lista que se ve en la pantalla
-        [ObservableProperty]
-        private ObservableCollection<ProductoDto> listaProductos;
+        private readonly ProductoService _productoService;
 
-        // Producto seleccionado (fila azul)
+        // 1. LISTA VISIBLE EN PANTALLA (La que cambia al buscar)
+        // Le cambiamos el nombre a 'Productos' para que coincida con el XAML
         [ObservableProperty]
-        private ProductoDto productoSeleccionadoDto;
+        private ObservableCollection<ProductoDto> productos;
+
+        // 2. LISTA "MAESTRA" EN MEMORIA (Respaldo para cuando borras la búsqueda)
+        private List<ProductoDto> _listaCompletaRespaldo;
+
+        // 3. PROPIEDAD DEL BUSCADOR
+        private string textoBusqueda;
+        public string TextoBusqueda
+        {
+            get => textoBusqueda;
+            set
+            {
+                if (SetProperty(ref textoBusqueda, value))
+                {
+                    FiltrarResultados(); // ¡Magia! Filtra cada vez que escribes
+                }
+            }
+        }
 
         public InventarioViewModel()
         {
-            ListaProductos = new ObservableCollection<ProductoDto>();
-            // La carga se hace automática desde la Vista (evento Loaded)
-            // para asegurar datos frescos.
+            _productoService = new ProductoService();
+            CargarDatos();
         }
 
-        // --- MÉTODO PÚBLICO DE CARGA (El corazón del refresco) ---
         public void CargarDatos()
         {
             try
             {
-                // 1. CREAMOS UNA CONEXIÓN NUEVA (Fundamental para ver cambios recientes)
-                var servicio = new ProductoService();
-                var productosDb = servicio.GetAll();
+                // 1. El servicio devuelve una lista de DTOs (Datos ya procesados)
+                // p.Categoria ya es un string (ej: "Bebidas")
+                // p.Unidad ya es un string (ej: "lt")
+                var productosDto = _productoService.GetAll();
 
-                ListaProductos.Clear();
+                var listaTemporal = new List<ProductoDto>();
 
-                foreach (var p in productosDb)
+                foreach (var p in productosDto)
                 {
-                    // 2. MAPEO: Pasamos de BD a la Vista
-                    ListaProductos.Add(new ProductoDto
+                    // Recalculamos estado y margen solo para asegurarnos que la visual esté fresca,
+                    // aunque el servicio ya suele traerlo.
+                    string estado = CalcularEstado(p.Stock, p.StockMinimo);
+
+                    // Protección contra división por cero
+                    decimal margen = (p.PrecioVenta == 0) ? 0 : (p.PrecioVenta - p.PrecioCompra) / p.PrecioVenta;
+
+                    listaTemporal.Add(new ProductoDto
                     {
                         Id = p.Id,
                         CodigoBarras = p.CodigoBarras,
                         Nombre = p.Nombre,
-                        Categoria = p.Categoria ?? "-", // Evitamos nulos
-                        Unidad = p.Unidad ?? "u.",
+
+                        // --- CORRECCIÓN AQUÍ ---
+                        // Antes: p.Categoria.Nombre (Error porque p.Categoria ya es string)
+                        // Ahora: p.Categoria (Correcto)
+                        Categoria = p.Categoria,
+
+                        // Antes: p.UnidadMedida.Abreviatura (Error porque el DTO no tiene objeto UnidadMedida)
+                        // Ahora: p.Unidad (Correcto)
+                        Unidad = p.Unidad,
+                        // -----------------------
+
                         PrecioCompra = p.PrecioCompra,
                         PrecioVenta = p.PrecioVenta,
                         Stock = p.Stock,
-
-                        // IMPORTANTE: Leemos el StockMinimo para poder calcular el estado
                         StockMinimo = p.StockMinimo,
-
-                        // 3. CÁLCULO DEL ESTADO (Aquí estaba el problema antes)
-                        EstadoStock = CalcularEstado(p.Stock, p.StockMinimo),
-
-                        // Cálculo del margen
-                        MargenGanancia = (p.PrecioVenta == 0) ? 0 : (p.PrecioVenta - p.PrecioCompra) / p.PrecioVenta
+                        EstadoStock = estado,
+                        MargenGanancia = margen
                     });
                 }
+
+                // Guardamos en el respaldo y en la visual
+                _listaCompletaRespaldo = listaTemporal;
+                Productos = new ObservableCollection<ProductoDto>(_listaCompletaRespaldo);
             }
-            catch (Exception ex)
+            catch (System.Exception ex)
             {
-                MessageBox.Show($"Error al actualizar inventario: {ex.Message}");
+                MessageBox.Show($"Error al cargar inventario: {ex.Message}");
             }
         }
 
-        // Lógica de colores/estados
+        // --- LÓGICA DEL BUSCADOR ---
+        private void FiltrarResultados()
+        {
+            if (_listaCompletaRespaldo == null) return;
+
+            if (string.IsNullOrWhiteSpace(TextoBusqueda))
+            {
+                // Si borró todo, mostramos la lista completa original
+                Productos = new ObservableCollection<ProductoDto>(_listaCompletaRespaldo);
+            }
+            else
+            {
+                // Filtramos por Nombre O Código
+                var filtrados = _listaCompletaRespaldo
+                    .Where(p => p.Nombre.ToLower().Contains(TextoBusqueda.ToLower()) ||
+                                p.CodigoBarras.Contains(TextoBusqueda))
+                    .ToList();
+
+                Productos = new ObservableCollection<ProductoDto>(filtrados);
+            }
+        }
+
+        // Tu lógica de colores (Perfecta, la dejamos igual)
         private string CalcularEstado(int stock, int minimo)
         {
-            if (stock <= minimo) return "STOCK BAJO";      // Rojo
-            if (stock <= minimo * 3) return "STOCK MEDIO"; // Naranja
-            return "STOCK ALTO";                           // Verde
+            if (stock <= minimo) return "STOCK BAJO";
+            if (stock <= minimo * 3) return "STOCK MEDIO";
+            return "STOCK ALTO";
         }
 
-        // --- COMANDOS (BOTONES) ---
+        // --- COMANDOS ACTUALIZADOS ---
 
         [RelayCommand]
         private void NuevoProducto()
         {
-            // Usamos tu ventana de formulario
-            var ventana = new ProductoFormWindow();
-            bool? resultado = ventana.ShowDialog();
-
-            if (resultado == true)
+            var ventana = new Views.ProductoFormWindow(); // Asegúrate del namespace correcto
+            if (ventana.ShowDialog() == true)
             {
-                CargarDatos(); // Si guardó, recargamos lista
+                CargarDatos();
             }
         }
 
+        // CAMBIO CLAVE: Recibimos el producto como parámetro desde el botón de la fila
         [RelayCommand]
-        private void EditarProducto()
+        private void EditarProducto(ProductoDto producto)
         {
-            if (ProductoSeleccionadoDto != null)
-            {
-                // Buscamos el producto REAL en la BD para editarlo completo
-                var servicio = new ProductoService();
-                var productoReal = servicio.GetById(ProductoSeleccionadoDto.Id);
+            if (producto == null) return;
 
-                if (productoReal != null)
+            // Buscamos el producto REAL en la BD
+            var productoReal = _productoService.GetById(producto.Id);
+
+            if (productoReal != null)
+            {
+                var ventana = new Views.ProductoFormWindow(productoReal);
+                if (ventana.ShowDialog() == true)
                 {
-                    var ventana = new ProductoFormWindow(productoReal);
-                    bool? resultado = ventana.ShowDialog();
-
-                    if (resultado == true)
-                    {
-                        CargarDatos(); // Si editó, recargamos
-                    }
-                }
-            }
-            else
-            {
-                MessageBox.Show("Selecciona un producto para editar.");
-            }
-        }
-
-        [RelayCommand]
-        private void EliminarProducto()
-        {
-            if (ProductoSeleccionadoDto != null)
-            {
-                if (MessageBox.Show($"¿Borrar '{ProductoSeleccionadoDto.Nombre}'?", "Confirmar", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-                {
-                    var servicio = new ProductoService();
-                    servicio.Delete(ProductoSeleccionadoDto.Id);
-                    CargarDatos();
+                    CargarDatos(); // Recargamos para ver los cambios
+                    TextoBusqueda = ""; // Limpiamos buscador opcionalmente
                 }
             }
         }
 
+        // CAMBIO CLAVE: Recibimos el parámetro
         [RelayCommand]
-        private void AbrirMaestros()
+        private void EliminarProducto(ProductoDto producto)
         {
-            // Creamos una ventana vacía al vuelo para alojar tu vista
-            var hostWindow = new Window
+            if (producto == null) return;
+
+            if (MessageBox.Show($"¿Borrar '{producto.Nombre}' permanentemente?", "Confirmar Eliminación",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            {
+                _productoService.Delete(producto.Id);
+
+                // Opción rápida: Lo sacamos de la lista visual sin ir a la BD (más rápido)
+                Productos.Remove(producto);
+                _listaCompletaRespaldo.Remove(producto);
+            }
+        }
+
+        [RelayCommand]
+        private void IrAMaestros()
+        {
+            // Crear la ventana contenedora
+            var window = new Window
             {
                 Title = "Gestión de Maestros",
-                Content = new GestionMaestrosView(), // Metemos tu vista adentro
-                Height = 600,
-                Width = 800,
-                WindowStartupLocation = WindowStartupLocation.CenterScreen
+                Height = 500,
+                Width = 850,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                ResizeMode = ResizeMode.NoResize,
+
+                // Aquí instanciamos la Vista y le asignamos su ViewModel
+                Content = new Views.GestionMaestrosView
+                {
+                    DataContext = new GestionMaestrosViewModel()
+                }
             };
 
-            hostWindow.ShowDialog();
+            window.ShowDialog(); // Esperar a que cierre
+
+            // Al volver, recargar los datos del inventario (por si cambiaron nombres de categorías)
             CargarDatos();
+        }
+        [RelayCommand]
+        private void ExportarExcel()
+        {
+            MessageBox.Show("Próximamente: Exportar a Excel");
         }
     }
 }

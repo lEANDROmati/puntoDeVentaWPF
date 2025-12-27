@@ -12,10 +12,23 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Margin="0,0,0,30">
-            <TextBlock Text="Resumen General" FontSize="26" FontWeight="Bold" Foreground="{StaticResource BrushTextoOscuro}"/>
-            <TextBlock Text="Vistazo rápido a la actividad de hoy" FontSize="14" Foreground="Gray" Margin="0,5,0,0"/>
-        </StackPanel>
+        <Grid Grid.Row="0" Margin="0,0,0,30">
+            <StackPanel>
+                <TextBlock Text="Resumen General" FontSize="26" FontWeight="Bold" Foreground="{StaticResource BrushTextoOscuro}"/>
+                <TextBlock Text="Vistazo rápido a la actividad de hoy" FontSize="14" Foreground="Gray" Margin="0,5,0,0"/>
+            </StackPanel>
+
+            <Button Content="🔒 CERRAR CAJA (Z)" Command="{Binding CerrarCajaCommand}"
+            HorizontalAlignment="Right" VerticalAlignment="Center"
+            Background="#D32F2F" Foreground="White" FontWeight="Bold"
+            Padding="20,10" BorderThickness="0">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="8"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+        </Grid>
 
         <Grid Grid.Row="1" Margin="0,0,0,30">
             <Grid.ColumnDefinitions>
@@ -37,8 +50,10 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel>
                         <TextBlock Text="Ventas de Hoy" FontSize="14" Foreground="Gray" FontWeight="SemiBold"/>
-                        <TextBlock Text="$ 15,240.00" FontSize="28" FontWeight="Bold" Foreground="{StaticResource BrushPrimario}" Margin="0,5,0,0"/>
-                        <TextBlock Text="+ 12% vs ayer" FontSize="12" Foreground="{StaticResource BrushVerdeExito}" Margin="0,5,0,0"/>
+
+                        <TextBlock Text="{Binding VentasHoy, StringFormat=C2}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource BrushPrimario}" Margin="0,5,0,0"/>
+
+                        <TextBlock Text="{Binding MensajeRendimiento}" FontSize="12" Foreground="{StaticResource BrushVerdeExito}" Margin="0,5,0,0"/>
                     </StackPanel>
                     <Border Grid.Column="1" Width="50" Height="50" CornerRadius="25" Background="#E8EAF6" VerticalAlignment="Top">
                         <TextBlock Text="💰" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -57,8 +72,10 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel>
                         <TextBlock Text="Tickets Emitidos" FontSize="14" Foreground="Gray" FontWeight="SemiBold"/>
-                        <TextBlock Text="34" FontSize="28" FontWeight="Bold" Foreground="{StaticResource BrushTextoOscuro}" Margin="0,5,0,0"/>
-                        <TextBlock Text="5 en la última hora" FontSize="12" Foreground="Gray" Margin="0,5,0,0"/>
+
+                        <TextBlock Text="{Binding CantidadTicketsHoy}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource BrushTextoOscuro}" Margin="0,5,0,0"/>
+
+                        <TextBlock Text="Acumulado del día" FontSize="12" Foreground="Gray" Margin="0,5,0,0"/>
                     </StackPanel>
                     <Border Grid.Column="1" Width="50" Height="50" CornerRadius="25" Background="#FFF3E0" VerticalAlignment="Top">
                         <TextBlock Text="🧾" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -77,7 +94,9 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel>
                         <TextBlock Text="Productos Stock Bajo" FontSize="14" Foreground="Gray" FontWeight="SemiBold"/>
-                        <TextBlock Text="3" FontSize="28" FontWeight="Bold" Foreground="{StaticResource BrushRojoAlerta}" Margin="0,5,0,0"/>
+
+                        <TextBlock Text="{Binding ProductosBajoStock}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource BrushRojoAlerta}" Margin="0,5,0,0"/>
+
                         <TextBlock Text="Requieren reposición" FontSize="12" Foreground="{StaticResource BrushRojoAlerta}" Margin="0,5,0,0"/>
                     </StackPanel>
                     <Border Grid.Column="1" Width="50" Height="50" CornerRadius="25" Background="#FFEBEE" VerticalAlignment="Top">

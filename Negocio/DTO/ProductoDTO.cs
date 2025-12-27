@@ -21,6 +21,8 @@ namespace Negocio.DTO
         // --- CAMPOS CALCULADOS (Aquí guardaremos el resultado) ---
         public decimal MargenGanancia { get; set; }
         public string EstadoStock { get; set; }
+
+
     }
 }
 

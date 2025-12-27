@@ -1,0 +1,70 @@
+﻿<UserControl x:Class="puntoDeVenta.Views.ReportesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:puntoDeVenta.ViewModels"
+             Background="White">
+
+    <UserControl.DataContext>
+        <vm:ReportesViewModel/>
+    </UserControl.DataContext>
+
+    <Grid Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Reportes y Estadísticas" FontSize="26" FontWeight="Bold" Foreground="#3F51B5" Margin="0,0,0,20"/>
+
+        <Border Grid.Row="1" Background="#F5F5F5" Padding="15" CornerRadius="10" Margin="0,0,0,20">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Desde:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                <DatePicker SelectedDate="{Binding FechaInicio}" Width="120"/>
+
+                <TextBlock Text="Hasta:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="20,0,10,0"/>
+                <DatePicker SelectedDate="{Binding FechaFin}" Width="120"/>
+
+                <Button Content="📊 Generar Reporte" Command="{Binding GenerarReporteCommand}"
+                        Background="#3F51B5" Foreground="White" FontWeight="Bold"
+                        Padding="20,8" Margin="30,0,0,0" BorderThickness="0">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="5"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="30"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <GroupBox Grid.Column="0" Header="💰 Ventas por Categoría" FontSize="16" FontWeight="SemiBold" BorderBrush="#E0E0E0">
+                <DataGrid ItemsSource="{Binding VentasPorCategoria}" AutoGenerateColumns="False" IsReadOnly="True" 
+                          CanUserAddRows="False" GridLinesVisibility="Horizontal" HeadersVisibility="Column" BorderThickness="0" Margin="10">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Categoría" Binding="{Binding Etiqueta}" Width="*"/>
+                        <DataGridTextColumn Header="Total Vendido" Binding="{Binding TotalVendido, StringFormat=C2}" Width="Auto" FontWeight="Bold" Foreground="Green"/>
+                        <DataGridTextColumn Header="Cant." Binding="{Binding CantidadVendida}" Width="Auto"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </GroupBox>
+
+            <GroupBox Grid.Column="2" Header="🏆 Top 5 Productos Más Vendidos" FontSize="16" FontWeight="SemiBold" BorderBrush="#E0E0E0">
+                <DataGrid ItemsSource="{Binding TopProductos}" AutoGenerateColumns="False" IsReadOnly="True" 
+                          CanUserAddRows="False" GridLinesVisibility="Horizontal" HeadersVisibility="Column" BorderThickness="0" Margin="10">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Producto" Binding="{Binding Etiqueta}" Width="*"/>
+                        <DataGridTextColumn Header="Unidades" Binding="{Binding CantidadVendida}" Width="Auto" FontWeight="Bold" Foreground="#3F51B5"/>
+                        <DataGridTextColumn Header="Recaudado" Binding="{Binding TotalVendido, StringFormat=C2}" Width="Auto"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </GroupBox>
+        </Grid>
+    </Grid>
+</UserControl>

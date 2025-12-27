@@ -1,65 +1,90 @@
-﻿using System.Windows;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using System.Collections.Specialized;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using CommunityToolkit.Mvvm.Messaging;
 
 
 namespace puntoDeVenta.Views
 {
-    public partial class VentasView : UserControl
+   public partial class VentasView : UserControl
     {
         public VentasView()
         {
-           InitializeComponent();
-           this.Loaded += VentasView_Loaded;
+            InitializeComponent();
 
-            WeakReferenceMessenger.Default.Register<string>(this, (r, m) =>
+            // 1. Al cargar, poner el foco en el buscador
+            this.Loaded += (s, e) =>
             {
-                if (m == "VentaFinalizada")
+                PonerFoco();
+                SuscribirScrollAutomatico(); // <--- Llamamos a la nueva función
+            };
+
+            // 2. Escuchar teclas (F1)
+            this.PreviewKeyDown += VentasView_PreviewKeyDown;
+        }
+
+        private void PonerFoco()
+        {
+            txtBuscar.Focus();
+            txtBuscar.SelectAll();
+        }
+
+        private void SuscribirScrollAutomatico()
+        {
+            // Obtenemos el ViewModel
+            if (this.DataContext is ViewModels.VentasViewModel vm)
+            {
+                // Nos suscribimos al evento "CollectionChanged" del Carrito
+                vm.Carrito.CollectionChanged += (s, e) =>
                 {
-                    // Usamos Dispatcher para asegurar que ocurra en el hilo visual
-                    Application.Current.Dispatcher.Invoke(() =>
+                    // Si hubo una acción de "Agregar" (Add)
+                    if (e.Action == NotifyCollectionChangedAction.Add)
                     {
-                        EnfocarBuscador();
-                    });
-                }
-            });
-        }
-        private void VentasView_Loaded(object sender, RoutedEventArgs e)
-        {
-            // Forzamos el foco en la caja de texto y seleccionamos todo por si hay texto viejo
-            txtBuscar.Focus();
-            txtBuscar.SelectAll();
-        }
-
-        // 1. Al cargar la pantalla, foco en el Buscador
-        private void UserControl_Loaded(object sender, RoutedEventArgs e)
-        {
-            EnfocarBuscador();
+                        // Scroll al último ítem
+                        if (vm.Carrito.Count > 0)
+                        {
+                            var ultimoItem = vm.Carrito[vm.Carrito.Count - 1];
+                            gridCarrito.ScrollIntoView(ultimoItem);
+                        }
+                    }
+                };
+            }
         }
 
-        // Métodos auxiliares para mover el foco
-        public void EnfocarBuscador()
+        private void VentasView_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            txtBuscar.Focus();
-            txtBuscar.SelectAll();
-        }
-
-        
-
-        // Escuchamos los cambios del teclado
-        protected override void OnPreviewKeyDown(KeyEventArgs e)
-        {
-            base.OnPreviewKeyDown(e);
-
-            // Si presionan F5 -> Foco al Buscador
-            if (e.Key == Key.F5)
+            // CASO 1: Tecla F1 -> Poner foco
+            if (e.Key == Key.F1)
             {
-                EnfocarBuscador();
+                PonerFoco();
                 e.Handled = true;
             }
 
-            
+            // CASO 2: Tecla SUPR (Delete) -> Eliminar item seleccionado
+            if (e.Key == Key.Delete)
+            {
+                // 1. Obtenemos el ViewModel (el cerebro de la pantalla)
+                if (this.DataContext is ViewModels.VentasViewModel vm)
+                {
+                    // 2. Ejecutamos el comando de eliminar (sin parámetros, para que borre el seleccionado)
+                    if (vm.EliminarItemCommand.CanExecute(null))
+                    {
+                        vm.EliminarItemCommand.Execute(null);
+
+                        // 3. ¡Truco! Devolvemos el foco al buscador inmediatamente
+                        PonerFoco();
+
+                        e.Handled = true; // Decimos "ya manejé la tecla, nadie más la toque"
+                    }
+                }
+            }
+        }
+        private void BtnEliminar_Click(object sender, RoutedEventArgs e)
+        {
+            // Cuando hacen clic en Eliminar, esperamos un microsegundo 
+            // a que el botón haga su trabajo y luego robamos el foco de vuelta.
+            PonerFoco();
         }
     }
 }

@@ -17,7 +17,7 @@ namespace Negocio
             _context = new AppDbContext();
         }
 
-        public void GuardarVenta(decimal total, List<DetalleVenta> detalles, decimal importe, string metodoPago)
+        public int GuardarVenta(decimal total, List<DetalleVenta> detalles, decimal importe, string metodoPago)
         {
             // Transacción: O se guarda todo, o no se guarda nada (Seguridad)
             using (var transaction = _context.Database.BeginTransaction())
@@ -31,7 +31,8 @@ namespace Negocio
                         Total = total,
                         Importe = importe,       // Guardamos cuánto pagó
                         MetodoPago = metodoPago, // Guardamos cómo pagó (Efectivo/Tarjeta/QR)
-                        UsuarioId = 1            // Hardcodeado (luego pondremos el usuario real)
+                       // UsuarioId = SesionActual.Usuario.Id
+                       UsuarioId = 1 // Temporal hasta tener sesión
                     };
 
                     _context.Ventas.Add(nuevaVenta);
@@ -60,12 +61,31 @@ namespace Negocio
 
                     _context.SaveChanges();
                     transaction.Commit(); // Confirmar cambios
+                    return nuevaVenta.Id;
                 }
+
                 catch (Exception)
                 {
                     transaction.Rollback(); // Deshacer si hubo error
                     throw;
                 }
+            }
+        }
+
+        public List<Venta> GetVentasPorFecha(DateTime desde, DateTime hasta)
+        {
+            using (var _context = new AppDbContext())
+            {
+                // Truco: Ajustamos la hora para abarcar todo el día final (23:59:59)
+                DateTime fechaFin = hasta.Date.AddDays(1).AddTicks(-1);
+                DateTime fechaInicio = desde.Date;
+
+                return _context.Ventas
+                               .Include(v => v.Detalles)          // Traer los detalles
+                               .ThenInclude(d => d.Producto)      // Traer nombre del producto en el detalle
+                               .Where(v => v.Fecha >= fechaInicio && v.Fecha <= fechaFin)
+                               .OrderByDescending(v => v.Fecha)   // Las más nuevas arriba
+                               .ToList();
             }
         }
     }

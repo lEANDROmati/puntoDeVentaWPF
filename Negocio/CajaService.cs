@@ -26,7 +26,12 @@ namespace Negocio
                 if (ObtenerCajaAbierta() != null)
                     throw new Exception("Ya hay una caja abierta.");
 
-                var nuevaSesion = new CajaSesion { MontoInicial = montoInicial };
+                var nuevaSesion = new CajaSesion 
+                {
+                    MontoInicial = montoInicial,
+                    FechaApertura = DateTime.Now,
+                    EstaAbierta = true
+                };
                 db.CajasSesiones.Add(nuevaSesion);
                 db.SaveChanges();
             }

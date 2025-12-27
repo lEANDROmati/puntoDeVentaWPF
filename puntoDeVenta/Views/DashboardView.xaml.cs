@@ -1,4 +1,5 @@
-﻿using System;
+﻿using puntoDeVenta.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows;
@@ -13,14 +14,21 @@ using System.Windows.Shapes;
 
 namespace puntoDeVenta.Views
 {
-    /// <summary>
-    /// Lógica de interacción para DashboardView.xaml
-    /// </summary>
+    
     public partial class DashboardView : UserControl
     {
         public DashboardView()
         {
             InitializeComponent();
+
+            // Cada vez que se muestre, recargar los números
+            this.Loaded += (s, e) =>
+            {
+                if (this.DataContext is DashboardViewModel vm)
+                {
+                    vm.CargarMetricas();
+                }
+            };
         }
     }
 }

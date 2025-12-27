@@ -14,7 +14,9 @@ namespace Datos
         public DbSet<Configuracion> Configuraciones { get; set; }
         public DbSet<CajaSesion> CajasSesiones { get; set; }
         public DbSet<Categoria> Categorias { get; set; }     
-        public DbSet<UnidadMedida> UnidadesMedida { get; set; } 
+        public DbSet<UnidadMedida> UnidadesMedida { get; set; }
+
+        public DbSet<Usuario> Usuarios { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -52,6 +54,19 @@ namespace Datos
                      Direccion = "Sin Dirección Registrada"
                  }
                  );
+
+            // Crear Usuario Admin por defecto
+            modelBuilder.Entity<Usuario>().HasData(
+                new Usuario
+                {
+                    Id = 1,
+                    NombreUsuario = "admin",
+                    Password = "123",
+                    NombreCompleto = "Administrador",
+                    Rol = "Admin",
+                    Activo = true
+                }
+            );
         }
     }
 }

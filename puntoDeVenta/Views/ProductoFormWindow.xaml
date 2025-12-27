@@ -1,99 +1,157 @@
 ﻿<Window x:Class="puntoDeVenta.Views.ProductoFormWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Detalle de Producto" Height="550" Width="700"
-        WindowStartupLocation="CenterScreen" ResizeMode="NoResize" WindowStyle="ToolWindow"
-        FocusManager.FocusedElement="{Binding ElementName=txtCodigo}">
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Detalle de Producto" Height="559" Width="811"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
+        Background="#F5F7FA">
 
-    <Border Background="#F5F5F5" Padding="20">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+    <Window.Resources>
+        <Style TargetType="TextBox">
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border CornerRadius="5" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
+                            <ScrollViewer x:Name="PART_ContentHost"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-            <TextBlock Text="Datos del Producto" FontSize="20" FontWeight="Bold" Foreground="#3F51B5" Margin="0,0,0,20"/>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#546E7A"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+        </Style>
+    </Window.Resources>
 
-            <Border Grid.Row="1" Background="White" CornerRadius="10" Padding="20">
+    <Grid Margin="25">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Datos del Producto" FontSize="22" Foreground="#37474F" FontWeight="Bold"/>
+            <TextBlock Text="Completa la información para el inventario" FontSize="12" Foreground="#90A4AE" FontWeight="Normal"/>
+        </StackPanel>
+
+        <Grid Margin="0,75,0,1" Grid.RowSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="30"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0">
+
+                <TextBlock Text="Código de Barras"/>
+                <Grid Margin="0,0,0,15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="txtCodigo" Text="{Binding CodigoBarras}"/>
+                    <Button x:Name="btnGenerarCodigo" Content="⚡ Generar" Margin="18,1,0,1" Padding="10,0" Background="#607D8B" Foreground="White" BorderThickness="0" Grid.Column="1">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                </Grid>
+
+                <TextBlock Text="Nombre del Producto"/>
+                <TextBox x:Name="txtNombre" Text="{Binding Nombre}" Margin="0,0,0,15"/>
+
+                <TextBlock Text="Categoría"/>
+                <ComboBox x:Name="cmbCategoria" Height="40" Margin="0,0,0,15" DisplayMemberPath="Nombre" SelectedValuePath="Id" FontSize="14" VerticalContentAlignment="Center">
+                    <ComboBox.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="5"/>
+                        </Style>
+                    </ComboBox.Resources>
+                </ComboBox>
+
+                <TextBlock Text="Unidad de Medida"/>
+                <ComboBox x:Name="cmbUnidad" Height="40" DisplayMemberPath="Nombre" SelectedValuePath="Id" FontSize="14" VerticalContentAlignment="Center"/>
+
+            </StackPanel>
+
+            <StackPanel Grid.Column="2">
+
+                <Border Background="#E3F2FD" CornerRadius="8" Padding="15" Margin="0,0,0,20">
+                    <StackPanel>
+                        <TextBlock Text="💲 Calculadora de Precios" Foreground="#1565C0" Margin="0,0,0,10"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Costo ($)"/>
+                                <TextBox x:Name="txtCosto" Text="{Binding PrecioCompra}"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Margen (%)"/>
+                                <TextBox x:Name="txtMargen" Text="{Binding MargenGanancia}"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="Precio Venta ($)" Margin="0,15,0,5"/>
+                        <TextBox x:Name="txtPrecioVenta" Text="{Binding PrecioVenta}" 
+                                 FontSize="18" FontWeight="Bold" Foreground="#2E7D32" 
+                                 BorderBrush="#4CAF50" BorderThickness="2" Height="51"/>
+                    </StackPanel>
+                </Border>
+
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="15"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,15">
-                        <TextBlock Text="Código de Barras *" FontWeight="SemiBold" Foreground="Gray"/>
-                        <TextBox x:Name="txtCodigo" Height="35" VerticalContentAlignment="Center" FontSize="14" TabIndex="0"/>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Stock Actual"/>
+                        <TextBox x:Name="txtStock" Text="{Binding Stock}"/>
                     </StackPanel>
 
-                    <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,15">
-                        <TextBlock Text="Nombre / Descripción *" FontWeight="SemiBold" Foreground="Gray"/>
-                        <TextBox x:Name="txtNombre" Height="35" VerticalContentAlignment="Center" FontSize="14" TabIndex="1"/>
-                    </StackPanel>
-
-                    <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,15">
-                        <TextBlock Text="Categoría *" FontWeight="SemiBold" Foreground="Gray"/>
-                        <ComboBox x:Name="cmbCategoria" Height="35" FontSize="14" TabIndex="2"
-                                  DisplayMemberPath="Nombre" SelectedValuePath="Id"/>
-                    </StackPanel>
-
-                    <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,15">
-                        <TextBlock Text="Unidad de Medida *" FontWeight="SemiBold" Foreground="Gray"/>
-                        <ComboBox x:Name="cmbUnidad" Height="35" FontSize="14" TabIndex="3"
-                                  DisplayMemberPath="Nombre" SelectedValuePath="Id"/>
-                    </StackPanel>
-
-                    <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,15">
-                        <TextBlock Text="Precio de Compra (Costo)" FontWeight="SemiBold" Foreground="Gray"/>
-                        <TextBox x:Name="txtCosto" Height="35" VerticalContentAlignment="Center" FontSize="14" TabIndex="4"/>
-                    </StackPanel>
-
-                    <StackPanel Grid.Row="2" Grid.Column="2" Margin="0,0,0,15">
-                        <TextBlock Text="Precio de Venta (Público) *" FontWeight="Bold" Foreground="#2E7D32"/>
-                        <TextBox x:Name="txtPrecio" Height="35" VerticalContentAlignment="Center" FontSize="16" FontWeight="Bold" TabIndex="5"/>
-                    </StackPanel>
-
-                    <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,0,15">
-                        <TextBlock Text="Stock Actual" FontWeight="SemiBold" Foreground="Gray"/>
-                        <TextBox x:Name="txtStock" Height="35" VerticalContentAlignment="Center" FontSize="14" TabIndex="6"/>
-                    </StackPanel>
-
-                    <StackPanel Grid.Row="3" Grid.Column="2" Margin="0,0,0,15">
-                        <TextBlock Text="Stock Mínimo (Alerta)" FontWeight="SemiBold" Foreground="Gray"/>
-                        <TextBox x:Name="txtStockMin" Height="35" VerticalContentAlignment="Center" FontSize="14" TabIndex="7"/>
-                    </StackPanel>
-
-                    <StackPanel Grid.Row="4" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,10,0,0">
-
-                        <CheckBox x:Name="chkIVA" Content="Paga IVA" IsChecked="True" Margin="0,0,20,0">
-                            <CheckBox.LayoutTransform>
-                                <ScaleTransform ScaleX="1.2" ScaleY="1.2"/>
-                            </CheckBox.LayoutTransform>
-                        </CheckBox>
-
-                        <CheckBox x:Name="chkControlarStock" Content="Controlar Stock" IsChecked="True" Margin="0,0,20,0">
-                            <CheckBox.LayoutTransform>
-                                <ScaleTransform ScaleX="1.2" ScaleY="1.2"/>
-                            </CheckBox.LayoutTransform>
-                        </CheckBox>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Stock Mínimo (Alerta)"/>
+                        <TextBox x:Name="txtMinimo" Text="{Binding StockMinimo}"/>
                     </StackPanel>
                 </Grid>
-            </Border>
 
-            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-                <Button Content="Cancelar" IsCancel="True" Width="100" Height="40" Margin="0,0,10,0" Background="#ECEFF1" BorderBrush="#CFD8DC"/>
-                <Button Content="GUARDAR PRODUCTO" Click="BtnGuardar_Click" IsDefault="True" Width="180" Height="40" Background="#3F51B5" Foreground="White" FontWeight="Bold"/>
             </StackPanel>
         </Grid>
-    </Border>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button x:Name="btnCancelar" Content="Cancelar" Width="120" Height="45" Background="Transparent" Foreground="#78909C" BorderThickness="0" FontSize="14" Cursor="Hand"/>
+
+            <Button x:Name="btnGuardar" Content="💾 Guardar Producto" Width="180" Height="45" Background="#3F51B5" Foreground="White" BorderThickness="0" FontSize="14" FontWeight="Bold" Cursor="Hand" Margin="10,0,0,0">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="25"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+        </StackPanel>
+
+    </Grid>
 </Window>
