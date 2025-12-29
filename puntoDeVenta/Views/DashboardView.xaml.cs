@@ -24,6 +24,7 @@ namespace puntoDeVenta.Views
             // Cada vez que se muestre, recargar los números
             this.Loaded += (s, e) =>
             {
+                // Verificamos que el DataContext sea del tipo correcto antes de usarlo
                 if (this.DataContext is DashboardViewModel vm)
                 {
                     vm.CargarMetricas();

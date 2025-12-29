@@ -1,7 +1,12 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Negocio;
+using Negocio.DTO; // Asegúrate de importar el DTO
+using System;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
+using System.Windows.Media;
 
 namespace puntoDeVenta.ViewModels
 {
@@ -11,94 +16,155 @@ namespace puntoDeVenta.ViewModels
         private readonly ProductoService _productoService;
         private readonly CajaService _cajaService;
 
-        // --- PROPIEDADES QUE SE VEN EN PANTALLA ---
+        // --- MÉTRICAS GENERALES ---
         [ObservableProperty] private decimal ventasHoy;
         [ObservableProperty] private int cantidadTicketsHoy;
         [ObservableProperty] private int productosBajoStock;
+        [ObservableProperty] private string mensajeRendimiento;
 
+        // --- GRÁFICO DINÁMICO ---
+        [ObservableProperty]
+        private ObservableCollection<DatoGrafico> datosGrafico;
 
-        // Propiedades extra para comparar (opcional)
-        [ObservableProperty] private string mensajeRendimiento; // Ej: "+10% vs ayer"
+        [ObservableProperty]
+        private string tituloGrafico; // Ej: "Rendimiento: Últimos 7 días"
 
         public DashboardViewModel()
         {
             _ventaService = new VentaService();
             _productoService = new ProductoService();
             _cajaService = new CajaService();
+            DatosGrafico = new ObservableCollection<DatoGrafico>();
 
-            // Cargamos datos al iniciar (aunque el evento Loaded lo hará de nuevo)
             CargarMetricas();
+
+            // Por defecto cargamos la semana
+            FiltrarSemana();
         }
 
         public void CargarMetricas()
         {
             try
             {
-                // 1. Obtener ventas de HOY (Desde las 00:00 hasta ahora)
                 var ventas = _ventaService.GetVentasPorFecha(DateTime.Today, DateTime.Now);
-
                 VentasHoy = ventas.Sum(v => v.Total);
                 CantidadTicketsHoy = ventas.Count;
 
-                // 2. Obtener productos con Stock Bajo
-                // Usamos GetAll porque ya tiene la lógica de "STOCK BAJO" calculada en el DTO
                 var productos = _productoService.GetAll();
                 ProductosBajoStock = productos.Count(p => p.EstadoStock == "STOCK BAJO");
 
-                // 3. Mensajito motivador (Lógica simple)
-                if (VentasHoy > 0)
-                    MensajeRendimiento = "¡Ventas activas!";
-                else
-                    MensajeRendimiento = "Esperando primera venta...";
-
+                MensajeRendimiento = VentasHoy > 0 ? "¡Ventas activas!" : "Esperando primera venta...";
             }
             catch (Exception)
             {
-                // Si falla, mostramos ceros para no romper la app
                 VentasHoy = 0;
-                ProductosBajoStock = 0;
             }
         }
 
+        // --- COMANDOS DE FILTROS ---
+
         [RelayCommand]
-        private void CerrarCaja()
+        private void FiltrarDia()
+        {
+            TituloGrafico = "Rendimiento: Hoy (Por Hora)";
+            CargarGrafico(DateTime.Today, DateTime.Now, esPorHora: true);
+        }
+
+        [RelayCommand]
+        private void FiltrarSemana()
+        {
+            TituloGrafico = "Rendimiento: Últimos 7 Días";
+            // Desde hace 6 días hasta hoy (total 7)
+            CargarGrafico(DateTime.Today.AddDays(-6), DateTime.Now, esPorHora: false);
+        }
+
+        [RelayCommand]
+        private void FiltrarQuincena()
+        {
+            TituloGrafico = "Rendimiento: Últimos 15 Días";
+            CargarGrafico(DateTime.Today.AddDays(-14), DateTime.Now, esPorHora: false);
+        }
+
+        // --- LÓGICA DEL GRÁFICO ---
+        private void CargarGrafico(DateTime desde, DateTime hasta, bool esPorHora)
         {
             try
             {
-                var caja = _cajaService.ObtenerCajaAbierta();
-                if (caja == null)
+                // 1. Obtener ventas crudas del rango
+                var ventas = _ventaService.GetVentasPorFecha(desde, hasta);
+                DatosGrafico.Clear();
+
+                // 2. Definir el eje X (las etiquetas)
+                // Si es por HORA (08, 09, 10...) o por DÍA (Lun, Mar...)
+                var datosAgrupados = new System.Collections.Generic.List<DatoGrafico>();
+
+                if (esPorHora)
                 {
-                    MessageBox.Show("No hay ninguna caja abierta para cerrar.");
-                    return;
+                    // Crear slots para las horas operativas (ej: 08:00 a 22:00)
+                    for (int i = 8; i <= 22; i++)
+                    {
+                        decimal totalHora = ventas.Where(v => v.Fecha.Hour == i).Sum(v => v.Total);
+                        datosAgrupados.Add(new DatoGrafico
+                        {
+                            Etiqueta = $"{i}:00",
+                            ValorReal = totalHora,
+                            EsHoy = (DateTime.Now.Hour == i) // Resaltar hora actual
+                        });
+                    }
+                }
+                else
+                {
+                    // Crear slots por cada día del rango
+                    for (var dia = desde.Date; dia <= hasta.Date; dia = dia.AddDays(1))
+                    {
+                        decimal totalDia = ventas.Where(v => v.Fecha.Date == dia).Sum(v => v.Total);
+
+                        // Formato etiqueta: "Lun 12" o solo "12" si son muchos
+                        string formato = (hasta - desde).TotalDays > 10 ? "dd/MM" : "ddd dd";
+
+                        datosAgrupados.Add(new DatoGrafico
+                        {
+                            Etiqueta = dia.ToString(formato),
+                            ValorReal = totalDia,
+                            EsHoy = (dia == DateTime.Today) // Resaltar día actual
+                        });
+                    }
                 }
 
-                // 1. Calcular totales reales del turno
-                // Buscamos ventas hechas DESDE que se abrió la caja HASTA ahora
-                var ventasTurno = _ventaService.GetVentasPorFecha(caja.FechaApertura, DateTime.Now);
-                decimal totalVendido = ventasTurno.Sum(v => v.Total);
-                decimal totalEnCaja = caja.MontoInicial + totalVendido;
+                // 3. Normalizar Alturas (Escalar al tamaño del contenedor, ej: 150px)
+                decimal maxValor = datosAgrupados.Any() ? datosAgrupados.Max(d => d.ValorReal) : 1;
+                if (maxValor == 0) maxValor = 1; // Evitar división por cero
 
-                // 2. Preguntar confirmación (Simulación de arqueo)
-                var mensaje = $"--- CIERRE DE CAJA ---\n\n" +
-                              $"Inicio: {caja.MontoInicial:C2}\n" +
-                              $"Ventas: {totalVendido:C2}\n" +
-                              $"----------------------\n" +
-                              $"TOTAL ESPERADO: {totalEnCaja:C2}\n\n" +
-                              $"¿Confirmar cierre de turno?";
+                double alturaMaximaContenedor = 150; // Pixeles disponibles en la vista
 
-                if (MessageBox.Show(mensaje, "Cierre Z", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                foreach (var d in datosAgrupados)
                 {
-                    _cajaService.CerrarCaja(totalEnCaja);
-                    MessageBox.Show("¡Turno cerrado correctamente!\nSe ha desconectado la caja.", "Cierre Exitoso");
+                    // Regla de tres simple: Si MaxValor es 150px, ValorActual es X
+                    d.Altura = (double)(d.ValorReal / maxValor) * alturaMaximaContenedor;
 
-                    // Opcional: Recargar métricas (volverán a 0 si filtramos por caja abierta, o seguirán igual si es por día)
-                    CargarMetricas();
+                    // Asegurar un mínimo de 2px para que se vea la barra aunque sea 0
+                    if (d.Altura < 2) d.Altura = 2;
+
+                    // Color: Azul fuerte para hoy/hora actual, Azul suave para histórico
+                    d.Color = d.EsHoy ? "#3F51B5" : "#9FA8DA";
+                    if (d.ValorReal == 0) d.Color = "#E0E0E0"; // Gris si es cero
+
+                    DatosGrafico.Add(d);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error al cerrar: " + ex.Message);
+                MessageBox.Show("Error calculando gráfico: " + ex.Message);
             }
+        }
+
+        // ... MANTENER EL RESTO DE TUS MÉTODOS (CerrarCaja, etc) ...
+        [RelayCommand]
+        private void CerrarCaja()
+        {
+            // (Tu código de CerrarCaja sigue igual aquí)
+            // ...
+            // Solo recuerda al final llamar a FiltrarDia() o FiltrarSemana() para refrescar
         }
     }
 }

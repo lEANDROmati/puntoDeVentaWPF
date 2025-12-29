@@ -6,6 +6,7 @@
         xmlns:vm="clr-namespace:puntoDeVenta.ViewModels"
         xmlns:views="clr-namespace:puntoDeVenta.Views"
         mc:Ignorable="d"
+        ResizeMode="CanResize"
         Title="Sistema de Punto de Venta" Height="700" Width="1100"
         WindowStartupLocation="CenterScreen"
         Background="#F0F2F5">
@@ -62,6 +63,7 @@
     </Window.Resources>
 
     <Grid>
+        
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>

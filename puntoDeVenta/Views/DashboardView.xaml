@@ -3,7 +3,29 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="900">
+             mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="1000">
+
+    <UserControl.Resources>
+        <Style x:Key="EstiloFiltroGrafico" TargetType="RadioButton">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="bdr" Background="Transparent" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4" Padding="15,5" Margin="5,0" Cursor="Hand">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="#3F51B5"/>
+                                <Setter TargetName="bdr" Property="BorderBrush" Value="#3F51B5"/>
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
 
     <Grid Margin="30">
         <Grid.RowDefinitions>
@@ -15,13 +37,13 @@
         <Grid Grid.Row="0" Margin="0,0,0,30">
             <StackPanel>
                 <TextBlock Text="Resumen General" FontSize="26" FontWeight="Bold" Foreground="{StaticResource BrushTextoOscuro}"/>
-                <TextBlock Text="Vistazo rápido a la actividad de hoy" FontSize="14" Foreground="Gray" Margin="0,5,0,0"/>
+                <TextBlock Text="Vistazo rápido a la actividad" FontSize="14" Foreground="Gray" Margin="0,5,0,0"/>
             </StackPanel>
 
             <Button Content="🔒 CERRAR CAJA (Z)" Command="{Binding CerrarCajaCommand}"
-            HorizontalAlignment="Right" VerticalAlignment="Center"
-            Background="#D32F2F" Foreground="White" FontWeight="Bold"
-            Padding="20,10" BorderThickness="0">
+                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                    Background="#D32F2F" Foreground="White" FontWeight="Bold"
+                    Padding="20,10" BorderThickness="0">
                 <Button.Resources>
                     <Style TargetType="Border">
                         <Setter Property="CornerRadius" Value="8"/>
@@ -50,9 +72,7 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel>
                         <TextBlock Text="Ventas de Hoy" FontSize="14" Foreground="Gray" FontWeight="SemiBold"/>
-
                         <TextBlock Text="{Binding VentasHoy, StringFormat=C2}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource BrushPrimario}" Margin="0,5,0,0"/>
-
                         <TextBlock Text="{Binding MensajeRendimiento}" FontSize="12" Foreground="{StaticResource BrushVerdeExito}" Margin="0,5,0,0"/>
                     </StackPanel>
                     <Border Grid.Column="1" Width="50" Height="50" CornerRadius="25" Background="#E8EAF6" VerticalAlignment="Top">
@@ -72,9 +92,7 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel>
                         <TextBlock Text="Tickets Emitidos" FontSize="14" Foreground="Gray" FontWeight="SemiBold"/>
-
                         <TextBlock Text="{Binding CantidadTicketsHoy}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource BrushTextoOscuro}" Margin="0,5,0,0"/>
-
                         <TextBlock Text="Acumulado del día" FontSize="12" Foreground="Gray" Margin="0,5,0,0"/>
                     </StackPanel>
                     <Border Grid.Column="1" Width="50" Height="50" CornerRadius="25" Background="#FFF3E0" VerticalAlignment="Top">
@@ -94,9 +112,7 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel>
                         <TextBlock Text="Productos Stock Bajo" FontSize="14" Foreground="Gray" FontWeight="SemiBold"/>
-
                         <TextBlock Text="{Binding ProductosBajoStock}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource BrushRojoAlerta}" Margin="0,5,0,0"/>
-
                         <TextBlock Text="Requieren reposición" FontSize="12" Foreground="{StaticResource BrushRojoAlerta}" Margin="0,5,0,0"/>
                     </StackPanel>
                     <Border Grid.Column="1" Width="50" Height="50" CornerRadius="25" Background="#FFEBEE" VerticalAlignment="Top">
@@ -110,46 +126,67 @@
             <Border.Effect>
                 <DropShadowEffect BlurRadius="15" Color="#CFD8DC" Opacity="0.4" ShadowDepth="2"/>
             </Border.Effect>
+
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Text="Rendimiento Semanal" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushTextoOscuro}"/>
-
-                <Grid Grid.Row="1" Margin="0,20,0,0" VerticalAlignment="Bottom">
+                <Grid Grid.Row="0" Margin="0,0,0,20">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" VerticalAlignment="Bottom" Margin="10,0">
-                        <Border Height="100" Background="#E0E0E0" CornerRadius="5,5,0,0"/>
-                        <TextBlock Text="Lun" HorizontalAlignment="Center" Margin="0,5,0,0" Foreground="Gray"/>
-                    </StackPanel>
-                    <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Margin="10,0">
-                        <Border Height="140" Background="#E0E0E0" CornerRadius="5,5,0,0"/>
-                        <TextBlock Text="Mar" HorizontalAlignment="Center" Margin="0,5,0,0" Foreground="Gray"/>
-                    </StackPanel>
-                    <StackPanel Grid.Column="2" VerticalAlignment="Bottom" Margin="10,0">
-                        <Border Height="120" Background="#E0E0E0" CornerRadius="5,5,0,0"/>
-                        <TextBlock Text="Mié" HorizontalAlignment="Center" Margin="0,5,0,0" Foreground="Gray"/>
-                    </StackPanel>
-                    <StackPanel Grid.Column="3" VerticalAlignment="Bottom" Margin="10,0">
-                        <Border Height="180" Background="{StaticResource BrushPrimario}" CornerRadius="5,5,0,0"/>
-                        <TextBlock Text="Jue (Hoy)" HorizontalAlignment="Center" Margin="0,5,0,0" FontWeight="Bold" Foreground="{StaticResource BrushPrimario}"/>
-                    </StackPanel>
-                    <StackPanel Grid.Column="4" VerticalAlignment="Bottom" Margin="10,0">
-                        <Border Height="20" Background="#F5F5F5" CornerRadius="5,5,0,0"/>
-                        <TextBlock Text="Vie" HorizontalAlignment="Center" Margin="0,5,0,0" Foreground="Gray"/>
+                    <TextBlock Text="{Binding TituloGrafico}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushTextoOscuro}" VerticalAlignment="Center"/>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <RadioButton Content="Hoy" Command="{Binding FiltrarDiaCommand}" Style="{StaticResource EstiloFiltroGrafico}"/>
+                        <RadioButton Content="7 Días" Command="{Binding FiltrarSemanaCommand}" IsChecked="True" Style="{StaticResource EstiloFiltroGrafico}"/>
+                        <RadioButton Content="15 Días" Command="{Binding FiltrarQuincenaCommand}" Style="{StaticResource EstiloFiltroGrafico}"/>
                     </StackPanel>
                 </Grid>
+
+                <ItemsControl Grid.Row="1" ItemsSource="{Binding DatosGrafico}" VerticalAlignment="Bottom" Height="190">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Rows="1"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ToolTip="{Binding TooltipInfo}" Background="Transparent" Margin="5,0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <Border Grid.Row="1" 
+                                        Height="{Binding Altura}" 
+                                        Background="{Binding Color}" 
+                                        CornerRadius="4,4,0,0"
+                                        VerticalAlignment="Bottom">
+                                    <Border.Triggers>
+                                        <EventTrigger RoutedEvent="Loaded">
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetProperty="Height" From="0" To="{Binding Altura}" Duration="0:0:0.6" DecelerationRatio="0.5"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                    </Border.Triggers>
+                                </Border>
+
+                                <TextBlock Grid.Row="2" Text="{Binding Etiqueta}" 
+                                           HorizontalAlignment="Center" Margin="0,8,0,0" 
+                                           Foreground="Gray" FontSize="11"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </Grid>
         </Border>
     </Grid>
