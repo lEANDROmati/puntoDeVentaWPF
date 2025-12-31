@@ -1,7 +1,7 @@
 ﻿using Entidades;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Printing; // Necesario para manejar impresoras
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -11,198 +11,120 @@ namespace puntoDeVenta.Services
 {
     public class ImpresionService
     {
-        // AJUSTES DE IMPRESORA 80mm
-        // El ancho imprimible suele ser ~280-300px.
-        private const double ANCHO_PAGINA = 300;
-        private readonly FontFamily FUENTE_TICKET = new FontFamily("Consolas"); // Fuente monoespaciada para que todo encaje
+        private const double ANCHO_PAGINA = 280; // Ajustado a 80mm estándar
+        private readonly FontFamily FUENTE_TICKET = new FontFamily("Consolas");
 
-        public void ImprimirTicket(Venta venta, List<DetalleVenta> detalles, decimal pagoCon, decimal cambio, string nombreNegocio, string direccion, string telefono)
+        public void ImprimirTicket(Venta venta, List<DetalleVenta> detalles, decimal pagoCon, decimal cambio, Configuracion config)
         {
-            // 1. Configurar el Documento (El "Papel Virtual")
+            // 1. Crear el documento (igual que antes)
+            FlowDocument doc = CrearDocumentoVisual(venta, detalles, pagoCon, cambio, config);
+
+            // 2. IMPRESIÓN SILENCIOSA
+            try
+            {
+                PrintDialog pd = new PrintDialog();
+
+                if (!string.IsNullOrEmpty(config.NombreImpresora))
+                {
+                    // Intentamos usar la impresora configurada
+                    pd.PrintQueue = new LocalPrintServer().GetPrintQueue(config.NombreImpresora);
+                }
+
+                // Ajustamos el ancho "virtual" al real de la impresora
+                doc.PageWidth = pd.PrintableAreaWidth;
+                if (doc.PageWidth <= 0) doc.PageWidth = ANCHO_PAGINA; // Fallback por si falla la detección
+
+                // Enviamos directo sin abrir ventana (ShowDialog)
+                pd.PrintDocument(((IDocumentPaginatorSource)doc).DocumentPaginator, $"Ticket #{venta.Id}");
+            }
+            catch (Exception)
+            {
+                // Si falla la impresora configurada (está apagada o cambió de nombre),
+                // abrimos el diálogo tradicional como respaldo.
+                MessageBox.Show("No se encontró la impresora configurada. Seleccione una manualmente.", "Aviso Impresión");
+                PrintDialog pdManual = new PrintDialog();
+                if (pdManual.ShowDialog() == true)
+                {
+                    doc.PageWidth = pdManual.PrintableAreaWidth;
+                    pdManual.PrintDocument(((IDocumentPaginatorSource)doc).DocumentPaginator, $"Ticket #{venta.Id}");
+                }
+            }
+        }
+
+        // Método auxiliar que genera el diseño visual (Separado para limpieza)
+        private FlowDocument CrearDocumentoVisual(Venta venta, List<DetalleVenta> detalles, decimal pagoCon, decimal cambio, Configuracion config)
+        {
             FlowDocument doc = new FlowDocument();
-            doc.PagePadding = new Thickness(5);
+            doc.PagePadding = new Thickness(2); // Márgenes mínimos para ahorrar papel
             doc.ColumnWidth = ANCHO_PAGINA;
             doc.FontFamily = FUENTE_TICKET;
-            doc.FontSize = 10; // Tamaño base legible
+            doc.FontSize = 10;
 
-            // ==========================================
-            // 1. ENCABEZADO (Branding)
-            // ==========================================
+            // --- ENCABEZADO ---
             Paragraph header = new Paragraph();
             header.TextAlignment = TextAlignment.Center;
-
-            // Nombre del Negocio (Grande y Negrita)
-            header.Inlines.Add(new Run(nombreNegocio.ToUpper())
-            {
-                FontSize = 16,
-                FontWeight = FontWeights.Bold
-            });
+            header.Inlines.Add(new Run(config.NombreNegocio?.ToUpper() ?? "MI NEGOCIO") { FontSize = 14, FontWeight = FontWeights.Bold });
             header.Inlines.Add(new LineBreak());
-
-            // Dirección y Contacto (Más chico)
-            if (!string.IsNullOrEmpty(direccion))
+            if (!string.IsNullOrEmpty(config.Direccion))
             {
-                header.Inlines.Add(new Run(direccion) { FontSize = 9 });
+                header.Inlines.Add(new Run(config.Direccion) { FontSize = 9 });
                 header.Inlines.Add(new LineBreak());
             }
-            if (!string.IsNullOrEmpty(telefono))
-            {
-                header.Inlines.Add(new Run($"Tel/Wpp: {telefono}") { FontSize = 9 });
-            }
+            header.Inlines.Add(new Run("--------------------------------") { FontSize = 8 });
             doc.Blocks.Add(header);
 
-            doc.Blocks.Add(CrearSeparador());
+            // --- DATOS ---
+            Paragraph meta = new Paragraph();
+            meta.FontSize = 9;
+            meta.Inlines.Add(new Run($"Fecha: {DateTime.Now:dd/MM/yyyy HH:mm}"));
+            meta.Inlines.Add(new LineBreak());
+            meta.Inlines.Add(new Run($"Ticket Nro: {venta.Id}"));
+            doc.Blocks.Add(meta);
 
-            // ==========================================
-            // 2. DATOS DE LA VENTA (Contexto)
-            // ==========================================
-            Paragraph metaData = new Paragraph();
-            metaData.FontSize = 9;
-            metaData.Inlines.Add(new Run($"Fecha: {DateTime.Now:dd/MM/yyyy}  Hora: {DateTime.Now:HH:mm}"));
-            metaData.Inlines.Add(new LineBreak());
-            metaData.Inlines.Add(new Run($"Ticket #: {venta.Id.ToString().PadLeft(6, '0')}"));
-            // metaData.Inlines.Add(new Run($"Cajero: Admin")); // Descomentar si tienes usuarios
-            doc.Blocks.Add(metaData);
-
-            doc.Blocks.Add(CrearSeparador());
-
-            // ==========================================
-            // 3. TABLA DE PRODUCTOS (Cuerpo)
-            // ==========================================
+            // --- ITEMS ---
             Table tabla = new Table();
             tabla.CellSpacing = 0;
-            // Definimos columnas: 
+            tabla.Columns.Add(new TableColumn() { Width = new GridLength(30) }); // Cant
+            tabla.Columns.Add(new TableColumn() { Width = new GridLength(140) }); // Prod
+            tabla.Columns.Add(new TableColumn() { Width = new GridLength(60) }); // Total
 
-            // Columna 1: CANT (Chica, para 2 o 3 dígitos)
-            tabla.Columns.Add(new TableColumn() { Width = new GridLength(40) });
-
-            // Columna 2: PRODUCTO (Grande, le damos 170px fijos para que entre texto cómodo)
-            tabla.Columns.Add(new TableColumn() { Width = new GridLength(170) });
-
-            // Columna 3: TOTAL (Mediana, para precios largos)
-            tabla.Columns.Add(new TableColumn() { Width = new GridLength(80) });
-
-            // Cabecera de la Tabla
-            TableRowGroup headerGroup = new TableRowGroup();
-            TableRow headerRow = new TableRow();
-            headerRow.Cells.Add(CrearCelda("CANT", TextAlignment.Center, true));
-            headerRow.Cells.Add(CrearCelda("PRODUCTO", TextAlignment.Left, true));
-            headerRow.Cells.Add(CrearCelda("TOTAL", TextAlignment.Right, true));
-            headerGroup.Rows.Add(headerRow);
-            tabla.RowGroups.Add(headerGroup);
-
-            // Filas de Productos
-            TableRowGroup bodyGroup = new TableRowGroup();
+            TableRowGroup grupo = new TableRowGroup();
             foreach (var item in detalles)
             {
                 TableRow row = new TableRow();
-                // Cantidad
-                row.Cells.Add(CrearCelda(item.Cantidad.ToString(), TextAlignment.Center));
-
-                // Nombre (El FlowDocument se encarga de hacer el "Wrap" si es largo)
-                row.Cells.Add(CrearCelda(item.Producto.Nombre, TextAlignment.Left));
-
-                // Precio Total del item
+                row.Cells.Add(CrearCelda(item.Cantidad.ToString(), TextAlignment.Left));
+                row.Cells.Add(CrearCelda(item.Producto.Nombre, TextAlignment.Left)); // El nombre largo baja solo
                 row.Cells.Add(CrearCelda($"${item.Subtotal:N2}", TextAlignment.Right));
-
-                bodyGroup.Rows.Add(row);
+                grupo.Rows.Add(row);
             }
-            tabla.RowGroups.Add(bodyGroup);
+            tabla.RowGroups.Add(grupo);
             doc.Blocks.Add(tabla);
 
-            doc.Blocks.Add(CrearSeparador());
+            // --- TOTALES ---
+            Paragraph totalP = new Paragraph();
+            totalP.TextAlignment = TextAlignment.Right;
+            totalP.Inlines.Add(new Run("--------------------------------"));
+            totalP.Inlines.Add(new LineBreak());
+            totalP.Inlines.Add(new Run($"TOTAL: ${venta.Total:N2}") { FontSize = 16, FontWeight = FontWeights.Bold });
+            totalP.Inlines.Add(new LineBreak());
+            totalP.Inlines.Add(new Run($"Efectivo: ${pagoCon:N2}") { FontSize = 9 });
+            totalP.Inlines.Add(new LineBreak());
+            totalP.Inlines.Add(new Run($"Su Vuelto: ${cambio:N2}") { FontSize = 9 });
+            doc.Blocks.Add(totalP);
 
-            // ==========================================
-            // 4. TOTALES (Jerarquía Visual Alta)
-            // ==========================================
-            Paragraph totales = new Paragraph();
-            totales.TextAlignment = TextAlignment.Center;
-
-            // 1. Etiqueta "TOTAL" (Tamaño medio)
-            totales.Inlines.Add(new Run("TOTAL A PAGAR")
-            {
-                FontSize = 12,
-                FontWeight = FontWeights.Bold
-            });
-            totales.Inlines.Add(new LineBreak());
-
-            // 2. El MONTO (Gigante)
-            // Al estar en su propia línea, puede ser enorme sin romper nada
-            totales.Inlines.Add(new Run($"${venta.Total:N2}")
-            {
-                FontSize = 22,
-                FontWeight = FontWeights.Black
-            });
-
-            totales.Inlines.Add(new LineBreak());
-
-            // 3. Detalles de pago (Más chicos y también centrados)
-            totales.Inlines.Add(new Run($"Efectivo: ${pagoCon:N2}   Vuelto: ${cambio:N2}")
-            {
-                FontSize = 10
-            });
-
-            doc.Blocks.Add(totales);
-
-            // Separador final
-            doc.Blocks.Add(CrearSeparador());
-
-            // ==========================================
-            // 5. PIE DE PÁGINA (Legales y Marketing)
-            // ==========================================
-            Paragraph footer = new Paragraph();
+            // --- PIE ---
+            Paragraph footer = new Paragraph(new Run("¡Gracias por su compra!"));
             footer.TextAlignment = TextAlignment.Center;
             footer.FontSize = 9;
-
-            // Aviso Legal Importante
-            footer.Inlines.Add(new Run("*** NO VÁLIDO COMO FACTURA ***") { FontWeight = FontWeights.Bold });
-            footer.Inlines.Add(new LineBreak());
-
-            footer.Inlines.Add(new Run("¡Gracias por su compra!"));
-            footer.Inlines.Add(new LineBreak());
-
-            // Marketing / Wifi
-            // footer.Inlines.Add(new Run("Wifi: Clientes2025")); 
-
+            footer.Margin = new Thickness(0, 10, 0, 0);
             doc.Blocks.Add(footer);
 
-            // ==========================================
-            // 6. ENVIAR A IMPRESORA
-            // ==========================================
-            PrintDialog printDialog = new PrintDialog();
-            if (printDialog.ShowDialog() == true)
-            {
-                // Ajustamos el ancho del papel al de la impresora real seleccionada
-                doc.PageWidth = printDialog.PrintableAreaWidth;
-
-                // Imprimimos
-                IDocumentPaginatorSource idpSource = doc;
-                printDialog.PrintDocument(idpSource.DocumentPaginator, $"Ticket Venta #{venta.Id}");
-            }
+            return doc;
         }
 
-        // --- MÉTODOS AYUDANTES PARA NO REPETIR CÓDIGO ---
-
-        // Crea una línea de guiones
-        private Paragraph CrearSeparador()
+        private TableCell CrearCelda(string texto, TextAlignment align)
         {
-            var p = new Paragraph(new Run("--------------------------------------------------"));
-            p.TextAlignment = TextAlignment.Center;
-            p.Margin = new Thickness(0, 5, 0, 5); // Un poco de aire arriba y abajo
-            return p;
-        }
-
-        // Crea una celda para la tabla
-        private TableCell CrearCelda(string texto, TextAlignment alineacion, bool esNegrita = false)
-        {
-            var run = new Run(texto);
-            if (esNegrita) run.FontWeight = FontWeights.Bold;
-
-            var p = new Paragraph(run);
-            p.TextAlignment = alineacion;
-            p.Margin = new Thickness(0, 2, 0, 2); // Separación entre filas
-
-            return new TableCell(p);
+            return new TableCell(new Paragraph(new Run(texto)) { TextAlignment = align, Margin = new Thickness(0) });
         }
     }
 }

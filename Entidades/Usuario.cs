@@ -18,7 +18,7 @@ namespace Entidades
         public string Password { get; set; }      // La contraseña
 
         [MaxLength(100)]
-        public string NombreCompleto { get; set; } // Nombre real (ej: "Juan Perez")
+        public string? NombreCompleto { get; set; } // Nombre real (ej: "Juan Perez")
 
         public string Rol { get; set; } = "Cajero"; // "Admin" o "Cajero"
         public bool Activo { get; set; } = true;

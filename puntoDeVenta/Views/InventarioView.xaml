@@ -68,8 +68,8 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock>
-                                <Run Text="{Binding Stock}" FontWeight="Bold"/>
-                                <Run Text="{Binding Unidad}" FontSize="10" Foreground="Gray"/>
+                                <Run Text="{Binding Stock}"  FontSize="15" FontWeight="Bold"/>
+                              
                             </TextBlock>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

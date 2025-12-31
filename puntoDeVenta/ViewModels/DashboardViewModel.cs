@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Negocio;
 using Negocio.DTO; // Asegúrate de importar el DTO
+using puntoDeVenta.Views;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -162,9 +163,71 @@ namespace puntoDeVenta.ViewModels
         [RelayCommand]
         private void CerrarCaja()
         {
-            // (Tu código de CerrarCaja sigue igual aquí)
-            // ...
-            // Solo recuerda al final llamar a FiltrarDia() o FiltrarSemana() para refrescar
+            try
+            {
+                // 1. Obtener la sesión de caja actual
+                var cajaActual = _cajaService.ObtenerCajaAbierta();
+
+                if (cajaActual == null)
+                {
+                    MessageBox.Show("No hay ninguna caja abierta para cerrar.", "Aviso");
+                    return;
+                }
+
+                // ========================================================================
+                // 🧠 CÁLCULO AUTOMÁTICO DEL MONTO ESPERADO
+                // ========================================================================
+
+                // A. Traemos todas las ventas del día (usamos DateTime.Now para cerrar hasta el momento actual)
+                var ventasDelDia = _ventaService.GetVentasPorFecha(cajaActual.FechaApertura, DateTime.Now);
+
+                // B. FILTRO DE SEGURIDAD: 
+                // Aseguramos que las ventas sean POSTERIORES a la hora de apertura exacta
+                // (Esto evita sumar ventas de un turno anterior si hubo dos cajeros el mismo día)
+                var ventasDeEstaSesion = ventasDelDia.Where(v => v.Fecha >= cajaActual.FechaApertura).ToList();
+
+                // C. Sumamos SOLO lo que entró en EFECTIVO
+                // (Las tarjetas o QR van al banco, no están en el cajón de dinero)
+                decimal totalVentasEfectivo = ventasDeEstaSesion
+                                                .Where(v => v.MetodoPago == "Efectivo")
+                                                .Sum(v => v.Total);
+
+                // D. Fórmula Final: Lo que había + Lo que entró
+                decimal montoEsperadoSistema = cajaActual.MontoInicial + totalVentasEfectivo;
+
+                // ========================================================================
+
+                // 2. Abrimos la ventana pasándole el dato calculado
+                // IMPORTANTE: Tu ventana 'CierreCajaWindow' debe tener el constructor que acepta el decimal
+                var ventanaCierre = new Views.CierreCajaWindow(montoEsperadoSistema);
+
+                if (ventanaCierre.ShowDialog() == true)
+                {
+                    // 3. El usuario contó el dinero real y confirmó
+                    decimal montoRealUsuario = ventanaCierre.MontoRealEnCaja;
+
+                    // 4. Guardamos el cierre
+                    _cajaService.CerrarCaja(montoRealUsuario);
+
+                    // 5. Calculamos la diferencia final para el reporte
+                    decimal diferencia = montoRealUsuario - montoEsperadoSistema;
+                    string estado = diferencia == 0 ? "PERFECTO" : (diferencia > 0 ? "SOBRANTE" : "FALTANTE");
+
+                    MessageBox.Show($"Caja cerrada con éxito.\n\n" +
+                                    $"Esperado: ${montoEsperadoSistema:N2}\n" +
+                                    $"Real: ${montoRealUsuario:N2}\n" +
+                                    $"Estado: {estado} (${diferencia:N2})",
+                                    "Reporte Z", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    // 6. Recargar Dashboard
+                    CargarMetricas();
+                    FiltrarDia();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al cerrar caja: {ex.Message}");
+            }
         }
     }
 }

@@ -4,81 +4,133 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:vm="clr-namespace:puntoDeVenta.ViewModels"
-             mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="900">
+             mc:Ignorable="d" d:DesignHeight="750" d:DesignWidth="1000">
 
     <d:UserControl.DataContext>
         <vm:ConfiguracionViewModel/>
     </d:UserControl.DataContext>
 
-    <Grid Margin="30">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
 
-        <StackPanel Grid.Row="0" Margin="0,0,0,30">
-            <TextBlock Text="Configuración del Sistema" FontSize="26" FontWeight="Bold" Foreground="{StaticResource BrushTextoOscuro}"/>
-            <TextBlock Text="Personaliza el comportamiento de tu Punto de Venta" FontSize="14" Foreground="Gray" Margin="0,5,0,0"/>
-        </StackPanel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="30">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <Border Grid.Row="1" Background="White" CornerRadius="15" Padding="40" HorizontalAlignment="Left" Width="600">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="15" Color="#CFD8DC" Opacity="0.4" ShadowDepth="2"/>
-            </Border.Effect>
-
-            <StackPanel>
-
-                <TextBlock Text="Datos del Negocio" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushPrimario}" Margin="0,0,0,15"/>
-
-                <TextBlock Text="Nombre del Comercio:" FontWeight="SemiBold" Foreground="#546E7A" Margin="0,0,0,5"/>
-                <TextBox Text="{Binding NombreNegocio}" Height="40" FontSize="16" VerticalContentAlignment="Center" Padding="10,0" BorderBrush="#CFD8DC">
-                    <TextBox.Resources>
-                        <Style TargetType="{x:Type Border}">
-                            <Setter Property="CornerRadius" Value="5"/>
-                        </Style>
-                    </TextBox.Resources>
-                </TextBox>
-                <TextBlock Text="Este nombre aparecerá en la cabecera y en los tickets." FontSize="12" Foreground="#90A4AE" Margin="0,5,0,20"/>
-
-                <Separator Background="#ECEFF1" Margin="0,0,0,20"/>
-
-                <TextBlock Text="Preferencias de Venta" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushPrimario}" Margin="0,0,0,15"/>
-
-                <CheckBox IsChecked="{Binding ImprimirTicket}" Margin="0,0,0,15">
-                    <CheckBox.LayoutTransform>
-                        <ScaleTransform ScaleX="1.2" ScaleY="1.2"/>
-                    </CheckBox.LayoutTransform>
-                    <TextBlock Text="Imprimir Ticket automáticamente al cobrar" FontSize="14" Margin="10,0,0,0" VerticalAlignment="Center"/>
-                </CheckBox>
-
-                <CheckBox IsChecked="{Binding UsarControlCaja}" Margin="0,0,0,20">
-                    <CheckBox.LayoutTransform>
-                        <ScaleTransform ScaleX="1.2" ScaleY="1.2"/>
-                    </CheckBox.LayoutTransform>
-                    <TextBlock Text="Exigir 'Apertura de Caja' antes de vender" FontSize="14" Margin="10,0,0,0" VerticalAlignment="Center"/>
-                </CheckBox>
-
-                <Separator Background="#ECEFF1" Margin="0,0,0,20"/>
-
-                <Button Content="GUARDAR CAMBIOS" Command="{Binding GuardarCambiosCommand}"
-                        Background="{StaticResource BrushPrimario}" Foreground="White"
-                        Height="50" Width="200" HorizontalAlignment="Right"
-                        FontSize="14" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="25">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="border" Property="Background" Value="#303F9F"/>
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
-
+            <StackPanel Grid.Row="0" Margin="0,0,0,30">
+                <TextBlock Text="Configuración y Usuarios" FontSize="26" FontWeight="Bold" Foreground="{StaticResource BrushTextoOscuro}"/>
+                <TextBlock Text="Gestiona tu negocio y tu equipo de trabajo" FontSize="14" Foreground="Gray" Margin="0,5,0,0"/>
             </StackPanel>
-        </Border>
-    </Grid>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="30"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Background="White" CornerRadius="15" Padding="30" VerticalAlignment="Top">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="15" Color="#CFD8DC" Opacity="0.4" ShadowDepth="2"/>
+                    </Border.Effect>
+
+                    <StackPanel>
+                        <TextBlock Text="🏢 Datos del Negocio" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushPrimario}" Margin="0,0,0,15"/>
+
+                        <TextBlock Text="Nombre del Comercio:" FontWeight="SemiBold" Foreground="#546E7A"/>
+                        <TextBox Text="{Binding NombreNegocio}" Height="40" Margin="0,5,0,15" Padding="5"/>
+
+                        <Separator Background="#ECEFF1" Margin="0,0,0,15"/>
+
+                        <TextBlock Text="🖨️ Impresión y Caja" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushPrimario}" Margin="0,0,0,15"/>
+
+                        <CheckBox IsChecked="{Binding ImprimirTicket}" Content="Imprimir Ticket Automático" Margin="0,0,0,10"/>
+
+                        <StackPanel Visibility="{Binding ImprimirTicket, Converter={StaticResource BoolToVis}}" Margin="20,0,0,15">
+                            <TextBlock Text="Impresora Térmica:" FontSize="12"/>
+                            <ComboBox ItemsSource="{Binding ListaImpresoras}" SelectedItem="{Binding NombreImpresora}" Height="35"/>
+                        </StackPanel>
+
+                        <CheckBox IsChecked="{Binding UsarControlCaja}" Content="Exigir Apertura de Caja" Margin="0,0,0,20"/>
+
+                        <Button Content="GUARDAR CONFIGURACIÓN" Command="{Binding GuardarCambiosCommand}"
+                                Background="{StaticResource BrushPrimario}" Foreground="White" Height="45" FontWeight="Bold"
+                                BorderThickness="0" Cursor="Hand">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="5"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Background="White" CornerRadius="15" Padding="30" VerticalAlignment="Top">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="15" Color="#CFD8DC" Opacity="0.4" ShadowDepth="2"/>
+                    </Border.Effect>
+
+                    <StackPanel>
+                        <TextBlock Text="👥 Gestión de Personal" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushPrimario}" Margin="0,0,0,15"/>
+
+                        <Border Background="#F5F7FA" CornerRadius="8" Padding="15" Margin="0,0,0,20">
+                            <StackPanel>
+                                <TextBlock Text="Nuevo Usuario" FontWeight="Bold" Foreground="#455A64" Margin="0,0,0,10"/>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Nombre" FontSize="11"/>
+                                        <TextBox Text="{Binding NuevoUsuarioNombre}" Height="30"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Contraseña" FontSize="11"/>
+                                        <TextBox Text="{Binding NuevoUsuarioPass}" Height="30"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <TextBlock Text="Rol (Permisos)" FontSize="11" Margin="0,10,0,0"/>
+                                <ComboBox ItemsSource="{Binding ListaRoles}" SelectedItem="{Binding NuevoUsuarioRol}" Height="35" Margin="0,0,0,10"/>
+
+                                <Button Content="➕ CREAR USUARIO" Command="{Binding CrearUsuarioCommand}"
+                                        Background="#4CAF50" Foreground="White" Height="35" BorderThickness="0" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="Usuarios Activos:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                        <DataGrid ItemsSource="{Binding ListaUsuarios}" AutoGenerateColumns="False" 
+                                  Height="200" CanUserAddRows="False" IsReadOnly="True" 
+                                  BorderBrush="#ECEFF1" BorderThickness="1">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Nombre" Binding="{Binding NombreUsuario}" Width="*"/>
+                                <DataGridTextColumn Header="Rol" Binding="{Binding Rol}" Width="100"/>
+                                <DataGridTemplateColumn Width="70">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Content="🗑️" 
+                                                    Command="{Binding DataContext.EliminarUsuarioCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                                    CommandParameter="{Binding}"
+                                                    Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="Eliminar Usuario"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <TextBlock Text="* Los empleados solo ven Caja y Dashboard." FontSize="11" Foreground="Gray" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
 </UserControl>

@@ -13,43 +13,66 @@ using System.Windows.Shapes;
 
 namespace puntoDeVenta.Views
 {
-    
+
     public partial class LoginWindow : Window
     {
-        private readonly UsuarioService _service;
+        private readonly UsuarioService _usuarioService;
 
         public LoginWindow()
         {
             InitializeComponent();
-            _service = new UsuarioService();
-            txtUser.Focus();
+            _usuarioService = new UsuarioService();
+
+            // Foco inicial en usuario
+            txtUsuario.Focus();
         }
 
-        private void BtnIngresar_Click(object sender, RoutedEventArgs e)
+        // 1. PERMITIR ARRASTRAR LA VENTANA (Porque quitamos los bordes)
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            var usuario = _service.Login(txtUser.Text, txtPass.Password);
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
+        }
 
-            if (usuario != null)
+        // 2. BOTÓN CERRAR (X)
+        private void BtnCerrar_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        // 3. LÓGICA DE LOGIN
+        private void BtnLogin_Click(object sender, RoutedEventArgs e)
+        {
+            string user = txtUsuario.Text;
+            string pass = txtPassword.Password;
+
+            if (string.IsNullOrWhiteSpace(user) || string.IsNullOrWhiteSpace(pass))
             {
-                // 1. Guardar en sesión
-                SesionActual.Usuario = usuario;
+                MessageBox.Show("Por favor, completa todos los campos.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
-                // 2. Abrir el sistema
-                new MainWindow().Show();
+            // Llamamos al servicio
+            var usuarioEncontrado = _usuarioService.Login(user, pass);
 
-                // 3. Cerrar el login
+            if (usuarioEncontrado != null)
+            {
+                // Guardamos la sesión
+                SesionActual.Usuario = usuarioEncontrado;
+
+                // Abrimos la ventana principal
+                MainWindow main = new MainWindow();
+                main.Show();
+
+                // Cerramos el login
                 this.Close();
             }
             else
             {
-                MessageBox.Show("Usuario o contraseña incorrectos.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                txtPass.Clear();
+                MessageBox.Show("Usuario o contraseña incorrectos.", "Error de Acceso", MessageBoxButton.OK, MessageBoxImage.Error);
+                txtPassword.Clear();
+                txtPassword.Focus();
             }
-        }
-
-        private void BtnSalir_Click(object sender, RoutedEventArgs e)
-        {
-            Application.Current.Shutdown();
         }
     }
 }

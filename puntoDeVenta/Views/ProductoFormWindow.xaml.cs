@@ -24,6 +24,7 @@ namespace puntoDeVenta.Views
 
         // Bandera para evitar bucles infinitos en el cálculo automático
         private bool _isCalculating = false;
+        private bool _cargandoDatos = false;
 
         // Constructor para NUEVO
         public ProductoFormWindow()
@@ -42,19 +43,52 @@ namespace puntoDeVenta.Views
         public ProductoFormWindow(Producto productoAEditar) : this()
         {
             _productoActual = productoAEditar;
+            this.DataContext = _productoActual;
             CargarDatosEnPantalla();
         }
 
         private void ConectarEventosCalculadora()
         {
-            // Suscribimos los eventos manualmente para no ensuciar el XAML
+            // Lógica 1: Si cambio Costo o Margen -> Calculo Precio
             txtCosto.TextChanged += (s, e) => CalcularPrecioVenta();
             txtMargen.TextChanged += (s, e) => CalcularPrecioVenta();
 
-            // Botones
+            // Lógica 2: Si cambio Precio -> Calculo Margen (Inverso)
+            txtPrecioVenta.TextChanged += (s, e) => CalcularMargen();
+
+            // Eventos de botones
             btnGuardar.Click += BtnGuardar_Click;
             btnCancelar.Click += (s, e) => this.Close();
             btnGenerarCodigo.Click += BtnGenerarCodigo_Click;
+        }
+        private void CalcularMargen()
+        {
+            // Si estamos cargando o calculando el precio, ALTO.
+            if (_cargandoDatos || _isCalculating) return;
+
+            try
+            {
+                _isCalculating = true; // 🔴 Bloqueo
+
+                decimal.TryParse(txtCosto.Text, out decimal costo);
+                decimal.TryParse(txtPrecioVenta.Text, out decimal precioVenta);
+
+                if (costo > 0)
+                {
+                    // Fórmula Inversa: ((Precio - Costo) / Costo) * 100
+                    decimal margen = ((precioVenta - costo) / costo) * 100;
+                    txtMargen.Text = Math.Round(margen, 2).ToString("N2");
+                }
+                else
+                {
+                    // Si no hay costo, no podemos calcular margen matemático real
+                    txtMargen.Text = "0";
+                }
+            }
+            finally
+            {
+                _isCalculating = false; // 🟢 Desbloqueo
+            }
         }
 
         private void CargarCombos()
@@ -68,55 +102,59 @@ namespace puntoDeVenta.Views
 
         private void CargarDatosEnPantalla()
         {
-            txtCodigo.Text = _productoActual.CodigoBarras;
-            txtNombre.Text = _productoActual.Nombre;
-            txtCosto.Text = _productoActual.PrecioCompra.ToString("N2"); // Formato bonito
-            txtPrecioVenta.Text = _productoActual.PrecioVenta.ToString("N2");
-            txtStock.Text = _productoActual.Stock.ToString();
-            txtMinimo.Text = _productoActual.StockMinimo.ToString();
+            _cargandoDatos = true; // 1. Bloqueamos
 
-            // Calcular el Margen visualmente (No se guarda en BD, se calcula)
-            // Fórmula: ((Precio - Costo) / Costo) * 100
-            if (_productoActual.PrecioCompra > 0)
+            try 
             {
-                decimal margen = ((_productoActual.PrecioVenta - _productoActual.PrecioCompra) / _productoActual.PrecioCompra) * 100;
-                txtMargen.Text = Math.Round(margen, 2).ToString();
-            }
-            else
-            {
-                txtMargen.Text = "0";
-            }
+                txtCodigo.Text = _productoActual.CodigoBarras;
+                txtNombre.Text = _productoActual.Nombre;
+                txtCosto.Text = _productoActual.PrecioCompra.ToString("N2");
+                txtPrecioVenta.Text = _productoActual.PrecioVenta.ToString("N2");
+                txtStock.Text = _productoActual.Stock.ToString();
+                txtMinimo.Text = _productoActual.StockMinimo.ToString();
 
-            cmbCategoria.SelectedValue = _productoActual.CategoriaId;
-            cmbUnidad.SelectedValue = _productoActual.UnidadMedidaId;
+                // Calcular el Margen visualmente
+                if (_productoActual.PrecioCompra > 0)
+                {
+                    decimal margen = ((_productoActual.PrecioVenta - _productoActual.PrecioCompra) / _productoActual.PrecioCompra) * 100;
+                    txtMargen.Text = Math.Round(margen, 2).ToString();
+                }
+                else
+                {
+                    txtMargen.Text = "0";
+                }
+
+                cmbCategoria.SelectedValue = _productoActual.CategoriaId;
+                cmbUnidad.SelectedValue = _productoActual.UnidadMedidaId;
+            }
+            finally 
+            {
+                _cargandoDatos = false; 
+            }
         }
 
         // --- LÓGICA DE CALCULADORA (COSTO + MARGEN = PRECIO) ---
         private void CalcularPrecioVenta()
         {
-            if (_isCalculating) return; // Evita rebote
+            // Si estamos cargando datos o si YA estamos calculando el inverso, ALTO.
+            if (_cargandoDatos || _isCalculating) return;
 
             try
             {
-                _isCalculating = true;
+                _isCalculating = true; // 🔴 Bloqueo (Semáforo en Rojo)
 
-                // Intentamos leer los números. Si están vacíos, usamos 0.
                 decimal.TryParse(txtCosto.Text, out decimal costo);
                 decimal.TryParse(txtMargen.Text, out decimal margen);
 
                 // Fórmula: Costo * (1 + Margen/100)
                 decimal precioFinal = costo * (1 + (margen / 100));
 
-                // Escribimos el resultado en la caja de precio
+                // Actualizamos Precio (esto disparará TextChanged de Precio, pero el semáforo lo frenará)
                 txtPrecioVenta.Text = Math.Round(precioFinal, 2).ToString("N2");
-            }
-            catch
-            {
-                // Ignorar errores mientras escribe
             }
             finally
             {
-                _isCalculating = false;
+                _isCalculating = false; // 🟢 Desbloqueo (Semáforo en Verde)
             }
         }
 

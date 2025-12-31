@@ -31,8 +31,8 @@ namespace Negocio
                         Total = total,
                         Importe = importe,       // Guardamos cuánto pagó
                         MetodoPago = metodoPago, // Guardamos cómo pagó (Efectivo/Tarjeta/QR)
-                       // UsuarioId = SesionActual.Usuario.Id
-                       UsuarioId = 1 // Temporal hasta tener sesión
+                        UsuarioId = SesionActual.Usuario.Id
+                       //UsuarioId = 1 // Temporal hasta tener sesión
                     };
 
                     _context.Ventas.Add(nuevaVenta);

@@ -2,6 +2,8 @@
 using CommunityToolkit.Mvvm.Input;
 using Entidades;
 using Negocio;
+using System.Collections.ObjectModel;
+using System.Printing;
 using System.Windows;
 
 namespace puntoDeVenta.ViewModels
@@ -9,6 +11,7 @@ namespace puntoDeVenta.ViewModels
     public partial class ConfiguracionViewModel : ObservableObject
     {
         private readonly ConfigService _configService;
+        private readonly UsuarioService _usuarioService;
 
         // Esta variable guarda la configuración real de la BD
         private Configuracion _configActual;
@@ -16,7 +19,12 @@ namespace puntoDeVenta.ViewModels
         public ConfiguracionViewModel()
         {
             _configService = new ConfigService();
+            _usuarioService = new UsuarioService();
+
+            ListaUsuarios = new ObservableCollection<Usuario>();
+
             CargarDatos();
+            CargarUsuarios();
         }
 
         // --- PROPIEDADES ENLAZADAS A LA PANTALLA ---
@@ -24,7 +32,18 @@ namespace puntoDeVenta.ViewModels
         [ObservableProperty] private string direccionNegocio; // Campo nuevo sugerido
         [ObservableProperty] private bool imprimirTicket;
         [ObservableProperty] private bool usarControlCaja;
+        [ObservableProperty] private string nombreImpresora;
 
+
+        public List<string> ListaImpresoras { get; set; } = new List<string>();
+
+
+        [ObservableProperty] private string nuevoUsuarioNombre;
+        [ObservableProperty] private string nuevoUsuarioPass;
+        [ObservableProperty] private string nuevoUsuarioRol; // Seleccionado en el Combo
+
+        public ObservableCollection<Usuario> ListaUsuarios { get; set; }
+        public List<string> ListaRoles { get; } = new List<string> { "Admin", "cajero" };
         private void CargarDatos()
         {
             // 1. Buscamos la configuración en la BD
@@ -34,7 +53,89 @@ namespace puntoDeVenta.ViewModels
             NombreNegocio = _configActual.NombreNegocio;
             ImprimirTicket = _configActual.ImprimirTicket;
             UsarControlCaja = _configActual.UsarControlCaja;
+            NombreImpresora = _configActual.NombreImpresora;
             // DireccionNegocio = ... (si agregas el campo a la entidad después)
+
+            CargarImpresorasSistema();
+        }
+
+        private void CargarUsuarios()
+        {
+            ListaUsuarios.Clear();
+            var usuarios = _usuarioService.ObtenerTodos();
+            foreach (var u in usuarios) ListaUsuarios.Add(u);
+        }
+
+        [RelayCommand]
+        private void CrearUsuario()
+        {
+            // Validaciones
+            if (string.IsNullOrWhiteSpace(NuevoUsuarioNombre) || string.IsNullOrWhiteSpace(NuevoUsuarioPass))
+            {
+                MessageBox.Show("Debes escribir un nombre y contraseña.");
+                return;
+            }
+            if (string.IsNullOrEmpty(NuevoUsuarioRol))
+            {
+                MessageBox.Show("Debes seleccionar un Rol (Admin o Empleado).");
+                return;
+            }
+            if (_usuarioService.ExisteUsuario(NuevoUsuarioNombre))
+            {
+                MessageBox.Show("Ya existe un usuario con ese nombre.");
+                return;
+            }
+
+            // Crear
+            var nuevo = new Usuario
+            {
+                NombreUsuario = NuevoUsuarioNombre,
+                Password = NuevoUsuarioPass,
+                Rol = NuevoUsuarioRol
+            };
+
+            _usuarioService.Guardar(nuevo);
+
+            // Limpiar y Recargar
+            NuevoUsuarioNombre = "";
+            NuevoUsuarioPass = "";
+            CargarUsuarios();
+
+            MessageBox.Show($"Usuario '{nuevo.NombreUsuario}' creado con éxito.");
+        }
+
+        [RelayCommand]
+        private void EliminarUsuario(Usuario usuario)
+        {
+            if (usuario == null) return;
+
+            // Protección: No borrar al último Admin
+            if (usuario.Rol == "Admin" && ListaUsuarios.Count(u => u.Rol == "Admin") <= 1)
+            {
+                MessageBox.Show("No puedes eliminar al último Administrador.");
+                return;
+            }
+
+            if (MessageBox.Show($"¿Eliminar a {usuario.NombreUsuario}?", "Confirmar", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            {
+                _usuarioService.Eliminar(usuario.Id);
+                CargarUsuarios();
+            }
+        }
+
+        private void CargarImpresorasSistema()
+        {
+            ListaImpresoras.Clear();
+            try
+            {
+                var server = new LocalPrintServer();
+                foreach (var cola in server.GetPrintQueues())
+                {
+                    ListaImpresoras.Add(cola.Name); // Ej: "Microsoft Print to PDF", "EPSON T20"
+                }
+                OnPropertyChanged(nameof(ListaImpresoras));
+            }
+            catch { /* Ignorar si no hay permisos de impresora */ }
         }
 
         [RelayCommand]
@@ -46,6 +147,7 @@ namespace puntoDeVenta.ViewModels
                 _configActual.NombreNegocio = NombreNegocio;
                 _configActual.ImprimirTicket = ImprimirTicket;
                 _configActual.UsarControlCaja = UsarControlCaja;
+                _configActual.NombreImpresora = NombreImpresora;
 
                 // 2. Guardamos en BD
                 _configService.GuardarConfig(_configActual);

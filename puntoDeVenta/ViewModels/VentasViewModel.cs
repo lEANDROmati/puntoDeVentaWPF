@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿    using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Entidades;
@@ -146,122 +146,84 @@ namespace puntoDeVenta.ViewModels
         [RelayCommand]
         private void Cobrar()
         {
-            // 1. Validar que haya algo
+            // 1. Validar carrito
             if (Carrito.Count == 0)
             {
                 MessageBox.Show("El carrito está vacío.");
                 return;
             }
 
-            // 2. Control de Caja (Opcional: Si quieres validar que esté abierta)
-            var cajaAbierta = _cajaService.ObtenerCajaAbierta();
+            // 2. Cargar configuración actualizada (para ver si activó/desactivó ticket)
             var config = _configService.ObtenerConfig();
+            var cajaAbierta = _cajaService.ObtenerCajaAbierta();
 
+            // 3. Control de Caja (Tu lógica original intacta)
             if (config.UsarControlCaja && cajaAbierta == null)
             {
-                // En vez de solo avisar, preguntamos
-                var respuesta = MessageBox.Show(
-                    "La caja se encuentra cerrada.\n¿Deseas realizar la APERTURA ahora para poder vender?",
-                    "Caja Cerrada",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Question);
-
-                if (respuesta == MessageBoxResult.Yes)
+                if (MessageBox.Show("La caja está cerrada. ¿Deseas abrirla?", "Caja Cerrada", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
-                    // 1. Abrimos la ventana de Apertura
-                    // Asegúrate de que "AperturaCajaWindow" sea el nombre correcto de tu ventana
-                    var ventanaApertura = new Views.AperturaCajaWindow();
-                    bool? resultadoApertura = ventanaApertura.ShowDialog();
-
-                    // 2. Verificamos de nuevo si la abrieron
+                    new Views.AperturaCajaWindow().ShowDialog();
                     cajaAbierta = _cajaService.ObtenerCajaAbierta();
-
-                    if (cajaAbierta == null)
-                    {
-                        // Si abrió la ventana pero la canceló o no guardó
-                        return;
-                    }
-                    // Si la abrió con éxito, el código SIGUE hacia abajo y cobra normalmente.
+                    if (cajaAbierta == null) return;
                 }
                 else
                 {
-                    // Dijo que NO quería abrirla
                     return;
                 }
             }
 
-            // 3. Abrir ventana de cobro
+            // 4. Abrir ventana de cobro
             var ventanaCobro = new Views.CobrarWindow(TotalVenta);
-            bool? resultado = ventanaCobro.ShowDialog();
-
-            if (resultado == true)
+            if (ventanaCobro.ShowDialog() == true)
             {
                 try
                 {
-                    // --- AQUÍ ESTÁ EL MAPEO ---
-                    // Convertimos nuestra lista visual (ItemCarrito) 
-                    // a la lista que entiende la base de datos (DetalleVenta)
+                    // --- CONVERSIÓN ---
                     var detallesParaGuardar = Carrito.Select(item => new DetalleVenta
                     {
                         ProductoId = item.Producto.Id,
                         Cantidad = item.Cantidad,
                         PrecioUnitario = item.PrecioUnitario,
                         Subtotal = item.Cantidad * item.PrecioUnitario
-                        // El Subtotal se calcula solo en la entidad o BD
                     }).ToList();
 
                     decimal importe = ventanaCobro.PagoRealizado;
                     string metodo = ventanaCobro.MetodoPagoSeleccionado;
+                    decimal vuelto = importe - TotalVenta;
 
-                    // 4. Guardamos usando el servicio
+                    // 5. GUARDAR VENTA
                     int idVenta = _ventaService.GuardarVenta(TotalVenta, detallesParaGuardar, importe, metodo);
 
-
-                    // 5. Ticket (Opcional)
-                    
-                    decimal vuelto = importe - TotalVenta;
-                   
-
-                    string nombreNegocio = config.NombreNegocio ?? "MI NEGOCIO";
-                    string direccion = config.Direccion ?? "Calle Falsa 123";
-                    string telefono =  "11-2222-3333";
-
-                    // 3. Preguntar si quiere ticket (Opcional, o imprimir directo)
-                    var quiereTicket = MessageBox.Show(
-                        $"Venta Exitosa.\nVuelto: ${vuelto:N2}\n\n¿Deseas imprimir el ticket?",
-                        "Imprimir",
-                        MessageBoxButton.YesNo,
-                        MessageBoxImage.Question);
-
-                    if (MessageBox.Show("¿Imprimir Ticket?", "Ticket", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                    // ============================================================
+                    // 6. IMPRESIÓN AUTOMÁTICA (Lógica Nueva)
+                    // ============================================================
+                    if (config.ImprimirTicket)
                     {
-                        // Crear objeto venta temporal (si aun no recargas el ID de la base)
-                        var ventaParaTicket = new Venta
-                        {
-                            Id = idVenta   , // Idealmente el servicio te devuelve el ID
-                            Total = TotalVenta
-                        };
+                        // Creamos un objeto venta temporal solo para el ticket
+                        var ventaTicket = new Venta { Id = idVenta, Total = TotalVenta };
 
-                        // 3. LLAMAR AL SERVICIO
+                        // Llamamos al servicio pasando la CONFIGURACIÓN (que tiene la impresora)
                         _impresionService.ImprimirTicket(
-                            ventaParaTicket,
+                            ventaTicket,
                             detallesParaGuardar,
                             importe,
                             vuelto,
-                            nombreNegocio,
-                            direccion,
-                            telefono
+                            config // <--- Pasamos config aquí
                         );
                     }
+                    // ============================================================
 
-                    // 4. Limpiar
+                    // 7. Limpiar y terminar
                     Carrito.Clear();
                     RecalcularTotal();
                     TextoBusqueda = "";
+
+                    // Opcional: Feedback sutil en barra de estado en vez de MessageBox intrusivo
+                    // StatusMessage = "Venta registrada con éxito"; 
                 }
-                catch (System.Exception ex)
+                catch (Exception ex)
                 {
-                    MessageBox.Show($"Error al cobrar: {ex.Message}");
+                    MessageBox.Show($"Error crítico al cobrar: {ex.Message}");
                 }
             }
         }

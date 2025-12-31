@@ -11,8 +11,9 @@ namespace Entidades
         public string NombreNegocio { get; set; } = "Mi Negocio";
         public bool ImprimirTicket { get; set; } = true;
         public bool UsarControlCaja { get; set; } = true;
+        public string? NombreImpresora { get; set; }
 
-       
+
         public bool ManejarIVA { get; set; } = false; 
 
         [Column(TypeName = "decimal(5,2)")]

@@ -1,0 +1,47 @@
+﻿<Window x:Class="puntoDeVenta.Views.CierreCajaWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Cierre de Caja" Height="396" Width="456"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize" WindowStyle="ToolWindow"
+        Background="#F5F5F5">
+
+    <Border Background="White" Margin="20" CornerRadius="10" Padding="20">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="10" Opacity="0.2"/>
+        </Border.Effect>
+
+        <StackPanel VerticalAlignment="Center" Height="224">
+            <TextBlock Text="🔒 CIERRE DE CAJA (Z)" HorizontalAlignment="Center" 
+                       FontSize="18" FontWeight="Bold" Foreground="#D32F2F" Margin="0,0,0,20"/>
+
+            <TextBlock Text="Dinero contado en caja:" FontWeight="SemiBold" Foreground="Gray"/>
+            <TextBlock Text="(Incluye el cambio inicial + ventas efectivo)" FontSize="10" Foreground="Gray" Margin="0,0,0,5"/>
+
+            <TextBox x:Name="txtMonto" Height="40" Margin="0,5,0,20" 
+                     FontSize="20" FontWeight="Bold" HorizontalContentAlignment="Right" 
+                     VerticalContentAlignment="Center" Text="0.00"
+                     BorderBrush="#D32F2F"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,20">
+                <TextBlock x:Name="lblEsperado" Text="Sistema espera: $0.00" 
+               Foreground="Gray" Margin="0,0,15,0" FontWeight="SemiBold"/>
+
+                <TextBlock x:Name="lblDiferencia" Text="Diferencia: $0.00" 
+               Foreground="Gray" FontWeight="Bold"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Cancelar" IsCancel="True" Width="100" Height="35" 
+                        Margin="0,0,10,0" Background="Transparent" BorderThickness="0"/>
+
+                <Button Content="CONFIRMAR CIERRE" Click="BtnConfirmar_Click" IsDefault="True" 
+                        Width="140" Height="35" Background="#D32F2F" Foreground="White" FontWeight="Bold">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="5"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

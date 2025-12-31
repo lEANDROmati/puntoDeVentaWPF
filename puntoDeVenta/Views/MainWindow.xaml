@@ -6,16 +6,18 @@
         xmlns:vm="clr-namespace:puntoDeVenta.ViewModels"
         xmlns:views="clr-namespace:puntoDeVenta.Views"
         mc:Ignorable="d"
-        ResizeMode="CanResize"
         Title="Sistema de Punto de Venta" Height="700" Width="1100"
         WindowStartupLocation="CenterScreen"
-        Background="#F0F2F5">
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        MouseDown="Window_MouseDown" ResizeMode="CanResizeWithGrip">
 
     <Window.DataContext>
         <vm:MainViewModel/>
     </Window.DataContext>
 
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
         <DataTemplate DataType="{x:Type vm:VentasViewModel}">
             <views:VentasView/>
         </DataTemplate>
@@ -60,80 +62,143 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+
+        <Style x:Key="WindowControlBtn" TargetType="Button">
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="#546E7A"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E0E0E0"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
 
-    <Grid>
-        
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+    <Border Background="#F0F2F5" CornerRadius="10" ClipToBounds="True">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="15" Opacity="0.3" ShadowDepth="5" Color="Black"/>
+        </Border.Effect>
 
-        <Border Grid.Column="0" Background="#3F51B5" Padding="10" 
-                Visibility="{Binding MenuVisibility}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-            <StackPanel Width="170">
-                <TextBlock Text="PUNTO DE VENTA" Foreground="White" FontWeight="Bold" 
-                           FontSize="18" HorizontalAlignment="Center" Margin="0,15,0,30"/>
+            <Border Grid.Column="0" Background="#3F51B5" Padding="10" 
+                    Visibility="{Binding MenuVisibility}">
 
-                <Button Content="🛒   Caja" Command="{Binding IrACajaCommand}" Style="{StaticResource EstiloMenuButton}"/>
+                <StackPanel Width="170">
+                    <TextBlock Text="Simple POS" Foreground="White" FontWeight="Bold" 
+                               FontSize="18" HorizontalAlignment="Center" Margin="0,15,0,30"/>
 
-                <Button x:Name="btnInventario" Content="📦   Inventario" Command="{Binding IrAInventarioCommand}" Style="{StaticResource EstiloMenuButton}"/>
+                    <Button Content="🛒   Caja" Command="{Binding IrACajaCommand}" Style="{StaticResource EstiloMenuButton}"/>
 
-                <Button x:Name="btnHistorial" Content="📜   Historial" Command="{Binding IrAHistorialCommand}" Style="{StaticResource EstiloMenuButton}"/>
+                    <Button x:Name="btnInventario" Content="📦   Inventario" 
+                            Command="{Binding IrAInventarioCommand}" 
+                            Style="{StaticResource EstiloMenuButton}"
+                            Visibility="{Binding EsAdmin, Converter={StaticResource BoolToVis}}"/>
 
-                <Button x:Name="btnDashboard" Content="📊   Dashboard" Command="{Binding IrADashboardCommand}" Style="{StaticResource EstiloMenuButton}"/>
+                    <Button x:Name="btnHistorial" Content="📜   Historial" 
+                            Command="{Binding IrAHistorialCommand}" 
+                            Style="{StaticResource EstiloMenuButton}"
+                            Visibility="{Binding EsAdmin, Converter={StaticResource BoolToVis}}"/>
 
-                <Button x:Name="btnReportes" Content="📈   Reportes" Command="{Binding IrAReportesCommand}" Style="{StaticResource EstiloMenuButton}"/>
+                    <Button x:Name="btnDashboard" Content="📊   Dashboard" Command="{Binding IrADashboardCommand}" Style="{StaticResource EstiloMenuButton}"/>
 
-                <Button x:Name="btnConfig" Content="⚙️   Ajustes" Command="{Binding IrAConfiguracionCommand}" Style="{StaticResource EstiloMenuButton}"/>
+                    <Button x:Name="btnReportes" Content="📈   Reportes" 
+                            Command="{Binding IrAReportesCommand}" 
+                            Style="{StaticResource EstiloMenuButton}"
+                            Visibility="{Binding EsAdmin, Converter={StaticResource BoolToVis}}"/>
 
-                <Rectangle Height="1" Fill="#7986CB" Margin="10,20"/>
+                    <Button x:Name="btnConfig" Content="⚙️   Ajustes" 
+                            Command="{Binding IrAConfiguracionCommand}" 
+                            Style="{StaticResource EstiloMenuButton}"
+                            Visibility="{Binding EsAdmin, Converter={StaticResource BoolToVis}}"/>
 
-                <TextBlock Text="Versión 1.0" Foreground="#C5CAE9" HorizontalAlignment="Center" FontSize="11"/>
-            </StackPanel>
-        </Border>
+                    <Button Content="🔒 Cerrar Sesión" Click="BtnCerrarSesion_Click" 
+                            Style="{StaticResource EstiloMenuButton}" VerticalAlignment="Bottom" Margin="0,40,0,0" Foreground="#FFCDD2"/>
 
-        <Grid Grid.Column="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="60"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-
-            <Border Grid.Row="0" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
-                <Grid Margin="20,0">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-
-                        <Button Command="{Binding VolverAlHomeCommand}" 
-                                Visibility="{Binding HomeButtonVisibility}"
-                                Background="Transparent" BorderThickness="0" Cursor="Hand" Margin="0,0,20,0">
-                            <StackPanel Orientation="Horizontal">
-                                <Border Background="#E8EAF6" Width="40" Height="40" CornerRadius="20">
-                                    <TextBlock Text="🏠" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                                <TextBlock Text="Volver al Menú" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="#3F51B5"/>
-                            </StackPanel>
-                        </Button>
-
-                        <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="{Binding NombreSucursal}" FontSize="18" FontWeight="Bold" Foreground="#333"/>
-                            <TextBlock Text="{Binding FechaHoraActual}" FontSize="12" Foreground="Gray"/>
-                        </StackPanel>
-                    </StackPanel>
-
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Border Width="35" Height="35" CornerRadius="20" Background="#E0E0E0" Margin="0,0,10,0">
-                            <TextBlock Text="👤" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="Usuario Activo" FontSize="12" Foreground="Gray"/>
-                            <TextBlock Text="Conectado" FontWeight="SemiBold" FontSize="14"/>
-                        </StackPanel>
-                    </StackPanel>
-                </Grid>
+                    <Rectangle Height="1" Fill="#7986CB" Margin="10,20"/>
+                    <TextBlock Text="Versión 1.0" Foreground="#C5CAE9" HorizontalAlignment="Center" FontSize="11"/>
+                </StackPanel>
             </Border>
 
-            <ContentControl Grid.Row="1" Content="{Binding CurrentView}" Margin="0"/>
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="60"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+                    <Grid Margin="20,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Command="{Binding VolverAlHomeCommand}" 
+                                    Visibility="{Binding HomeButtonVisibility}"
+                                    Background="Transparent" BorderThickness="0" Cursor="Hand" Margin="0,0,20,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Background="#E8EAF6" Width="40" Height="40" CornerRadius="20">
+                                        <TextBlock Text="🏠" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Volver al Menú" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="#3F51B5"/>
+                                </StackPanel>
+                            </Button>
+
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{Binding NombreSucursal}" FontSize="18" FontWeight="Bold" Foreground="#333"/>
+                                <TextBlock Text="{Binding FechaHoraActual}" FontSize="12" Foreground="Gray"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,20,0">
+                                <Border Width="35" Height="35" CornerRadius="20" Background="#E0E0E0" Margin="0,0,10,0">
+                                    <TextBlock Text="👤" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Usuario Activo" FontSize="12" Foreground="Gray"/>
+                                    <TextBlock Text="Conectado" FontWeight="SemiBold" FontSize="14"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Top" Margin="10,-15,-15,0">
+                                <Button Content="─" Click="BtnMin_Click" Style="{StaticResource WindowControlBtn}"/>
+                                <Button Content="▢" Click="BtnMax_Click" Style="{StaticResource WindowControlBtn}"/>
+                                <Button Content="✕" Click="BtnCerrar_Click" >
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource WindowControlBtn}">
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#FFEBEE"/>
+                                                    <Setter Property="Foreground" Value="#D32F2F"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <ContentControl Grid.Row="1" Content="{Binding CurrentView}" Margin="0"/>
+            </Grid>
         </Grid>
-    </Grid>
+    </Border>
 </Window>

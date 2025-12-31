@@ -1,6 +1,8 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using ClosedXML.Excel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Entidades;
+using Microsoft.Win32;
 using Negocio;
 using Negocio.DTO; // Asegúrate de tener este using
 using puntoDeVenta.Views; // Para abrir las ventanas hijas (ProductoWindow, etc)
@@ -9,6 +11,8 @@ using System.Collections.ObjectModel;
 using System.IO; // Para exportar a CSV
 using System.Text;
 using System.Windows;
+  
+
 
 namespace puntoDeVenta.ViewModels
 {
@@ -62,7 +66,7 @@ namespace puntoDeVenta.ViewModels
                     string estado = CalcularEstado(p.Stock, p.StockMinimo);
 
                     // Protección contra división por cero
-                    decimal margen = (p.PrecioVenta == 0) ? 0 : (p.PrecioVenta - p.PrecioCompra) / p.PrecioVenta;
+                    decimal margen = (p.PrecioCompra == 0) ? 0 : (p.PrecioVenta - p.PrecioCompra) / p.PrecioCompra;
 
                     listaTemporal.Add(new ProductoDto
                     {
@@ -202,10 +206,88 @@ namespace puntoDeVenta.ViewModels
             // Al volver, recargar los datos del inventario (por si cambiaron nombres de categorías)
             CargarDatos();
         }
+
         [RelayCommand]
         private void ExportarExcel()
         {
-            MessageBox.Show("Próximamente: Exportar a Excel");
+            try
+            {
+                // 1. Preguntar al usuario dónde quiere guardar el archivo
+                var saveFileDialog = new SaveFileDialog
+                {
+                    Filter = "Archivo Excel|*.xlsx",
+                    FileName = $"Inventario_{DateTime.Now:yyyy-MM-dd}.xlsx",
+                    Title = "Guardar Reporte de Inventario"
+                };
+
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    // 2. Crear el libro de Excel en memoria
+                    using (var workbook = new XLWorkbook())
+                    {
+                        var worksheet = workbook.Worksheets.Add("Productos");
+
+                        // --- CABECERAS ---
+                        worksheet.Cell(1, 1).Value = "CÓDIGO";
+                        worksheet.Cell(1, 2).Value = "PRODUCTO";
+                        worksheet.Cell(1, 3).Value = "CATEGORÍA";
+                        worksheet.Cell(1, 4).Value = "COSTO";
+                        worksheet.Cell(1, 5).Value = "PRECIO VENTA";
+                        worksheet.Cell(1, 6).Value = "MARGEN %";
+                        worksheet.Cell(1, 7).Value = "STOCK";
+                        worksheet.Cell(1, 8).Value = "ESTADO";
+
+                        // Estilo bonito para la cabecera
+                        var rangoCabecera = worksheet.Range("A1:H1");
+                        rangoCabecera.Style.Font.Bold = true;
+                        rangoCabecera.Style.Fill.BackgroundColor = XLColor.FromHtml("#3F51B5"); // Tu color azul
+                        rangoCabecera.Style.Font.FontColor = XLColor.White;
+                        rangoCabecera.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                        // --- DATOS ---
+                        int fila = 2;
+                        // Usamos 'Productos' que es la lista que se ve en pantalla (filtrada o completa)
+                        foreach (var p in Productos)
+                        {
+                            worksheet.Cell(fila, 1).Value = "'" + p.CodigoBarras; // Comilla para que Excel no lo convierta a notación científica
+                            worksheet.Cell(fila, 2).Value = p.Nombre;
+                            worksheet.Cell(fila, 3).Value = p.Categoria;
+
+                            worksheet.Cell(fila, 4).Value = p.PrecioCompra;
+                            worksheet.Cell(fila, 4).Style.NumberFormat.Format = "$ #,##0.00";
+
+                            worksheet.Cell(fila, 5).Value = p.PrecioVenta;
+                            worksheet.Cell(fila, 5).Style.NumberFormat.Format = "$ #,##0.00";
+
+                            worksheet.Cell(fila, 6).Value = p.MargenGanancia; // Viene como 0.30
+                            worksheet.Cell(fila, 6).Style.NumberFormat.Format = "0.0%"; // Excel lo muestra como 30.0%
+
+                            worksheet.Cell(fila, 7).Value = p.Stock;
+                            worksheet.Cell(fila, 8).Value = p.EstadoStock;
+
+                            // Colorear celda de Estado según el texto
+                            if (p.EstadoStock == "STOCK BAJO")
+                                worksheet.Cell(fila, 8).Style.Font.FontColor = XLColor.Red;
+                            else if (p.EstadoStock == "STOCK ALTO")
+                                worksheet.Cell(fila, 8).Style.Font.FontColor = XLColor.Green;
+
+                            fila++;
+                        }
+
+                        // Ajustar ancho de columnas automáticamente
+                        worksheet.Columns().AdjustToContents();
+
+                        // 3. Guardar el archivo físico
+                        workbook.SaveAs(saveFileDialog.FileName);
+
+                        MessageBox.Show("¡Inventario exportado exitosamente!", "Excel", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al exportar: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }

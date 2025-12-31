@@ -15,7 +15,7 @@ namespace puntoDeVenta.ViewModels
         public HistorialViewModel VmHistorial { get; } = new HistorialViewModel();
         public DashboardViewModel VmDashboard { get; } = new DashboardViewModel();
         public ConfiguracionViewModel VmConfiguracion { get; } = new ConfiguracionViewModel();
-        public ReportesViewModel VmReportes { get; } = new ReportesViewModel();
+        public ReportesViewModel VmReportes { get; } = new ReportesViewModel(); 
 
         // Vista Actual (Lo que se muestra en pantalla)
 
@@ -49,10 +49,20 @@ namespace puntoDeVenta.ViewModels
         [ObservableProperty]
         private string fechaHoraActual;
 
+        public bool EsAdmin { get; set; }
+
         public MainViewModel()
         {
+            if (SesionActual.Usuario != null && SesionActual.Usuario.Rol == "Admin")
+            {
+                EsAdmin = true;
+            }
+            else
+            {
+                EsAdmin = false;
+            }
             // Al iniciar, mostramos la Caja
-            CurrentView = VmCaja;
+            CurrentView = VmDashboard;
             IniciarReloj();
             CargarConfiguracion();
         }

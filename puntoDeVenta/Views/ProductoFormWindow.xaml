@@ -104,17 +104,17 @@
 
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Costo ($)"/>
-                                <TextBox x:Name="txtCosto" Text="{Binding PrecioCompra}"/>
+                                <TextBox x:Name="txtCosto" />
                             </StackPanel>
 
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Margen (%)"/>
-                                <TextBox x:Name="txtMargen" Text="{Binding MargenGanancia}"/>
+                                <TextBox x:Name="txtMargen"/>
                             </StackPanel>
                         </Grid>
 
                         <TextBlock Text="Precio Venta ($)" Margin="0,15,0,5"/>
-                        <TextBox x:Name="txtPrecioVenta" Text="{Binding PrecioVenta}" 
+                        <TextBox x:Name="txtPrecioVenta"  
                                  FontSize="18" FontWeight="Bold" Foreground="#2E7D32" 
                                  BorderBrush="#4CAF50" BorderThickness="2" Height="51"/>
                     </StackPanel>
