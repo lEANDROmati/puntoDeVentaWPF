@@ -1,6 +1,6 @@
-﻿using puntoDeVenta.Views;
-using System.Configuration;
-using System.Data;
+﻿using Datos;
+using puntoDeVenta.Views;
+using Microsoft.EntityFrameworkCore;
 using System.Windows;
 
 namespace puntoDeVenta
@@ -14,9 +14,16 @@ namespace puntoDeVenta
         {
             base.OnStartup(e);
 
-                // Abrir primero el Login
-                    var login = new LoginWindow();
-                  login.Show();
+            using (var context = new AppDbContext())
+            {
+                // Crea la base de datos y aplica todas las migraciones pendientes
+                // (Incluyendo la creación del usuario Admin)
+                context.Database.Migrate();
+            }
+
+            // Abrir primero el Login
+            var login = new LoginWindow();
+            login.Show();
         }
     }
 
