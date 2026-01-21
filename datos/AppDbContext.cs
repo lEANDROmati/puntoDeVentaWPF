@@ -79,25 +79,15 @@ namespace Datos
                     NombreNegocio = "Mi Negocio",
                     PorcentajeIVA = 21,
                     ManejarIVA = false,
-                    ImprimirTicket = true,
+                    ImprimirTicket = false,
                     UsarControlCaja = true,
                     Cuit = "00-00000000-0",
                     Direccion = "Sin Dirección Registrada"
                 }
                  );
 
-            // Crear Usuario Admin por defecto
-            modelBuilder.Entity<Usuario>().HasData(
-                new Usuario
-                {
-                    Id = 1,
-                    NombreUsuario = "admin",
-                    Password = "123",
-                    NombreCompleto = "Administrador",
-                    Rol = "Admin",
-                    Activo = true
-                }
-            );
+            
+           
         }
     }
 }

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Datos.Migrations
 {
     /// <inheritdoc />
-    public partial class InicialSQLite : Migration
+    public partial class seguro : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -183,7 +183,7 @@ namespace Datos.Migrations
             migrationBuilder.InsertData(
                 table: "Configuraciones",
                 columns: new[] { "Id", "Cuit", "Direccion", "ImprimirTicket", "ManejarIVA", "NombreImpresora", "NombreNegocio", "PorcentajeIVA", "UsarControlCaja" },
-                values: new object[] { 1, "00-00000000-0", "Sin Dirección Registrada", true, false, null, "Mi Negocio", 21m, true });
+                values: new object[] { 1, "00-00000000-0", "Sin Dirección Registrada", false, false, null, "Mi Negocio", 21m, true });
 
             migrationBuilder.InsertData(
                 table: "UnidadesMedida",
@@ -193,11 +193,6 @@ namespace Datos.Migrations
                     { 1, "un", true, "Unidad" },
                     { 2, "kg", true, "Kilogramo" }
                 });
-
-            migrationBuilder.InsertData(
-                table: "Usuarios",
-                columns: new[] { "Id", "Activo", "NombreCompleto", "NombreUsuario", "Password", "Rol" },
-                values: new object[] { 1, true, "Administrador", "admin", "123", "Admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_DetallesVenta_ProductoId",

@@ -2,6 +2,7 @@
 using Entidades;
 using System.Collections.Generic;
 using System.Linq;
+using BCrypt.Net;
 
 namespace Negocio
 {
@@ -15,10 +16,33 @@ namespace Negocio
         }
 
         // 1. LOGIN (Ya lo tenías)
-        public Usuario Login(string nombre, string password)
+        public Usuario Login(string nombre, string passwordPlana)
         {
-            return _context.Usuarios
-                           .FirstOrDefault(u => u.NombreUsuario == nombre && u.Password == password);
+            // 1. Buscamos al usuario SOLO por nombre primero
+            var usuario = _context.Usuarios
+                                  .FirstOrDefault(u => u.NombreUsuario == nombre && u.Activo);
+
+            // 2. Si existe, verificamos la contraseña
+            if (usuario != null)
+            {
+                // Verify toma la password escrita (ej: "123") y el hash de la BD ($2a$11$...)
+                bool esValida = BCrypt.Net.BCrypt.Verify(passwordPlana, usuario.Password);
+
+                if (esValida)
+                {
+                    return usuario; // Contraseña correcta
+                }
+            }
+
+            return null; // Usuario no existe o contraseña incorrecta
+        }
+        public void RegistrarUsuario(Usuario usuario, string passwordPlana)
+        {
+            // Hasheamos la contraseña antes de guardar el objeto
+            usuario.Password = BCrypt.Net.BCrypt.HashPassword(passwordPlana);
+
+            // Guardamos
+            Guardar(usuario); // Reutilizamos tu método Guardar existente
         }
 
         // 2. LISTAR TODOS (Para la tabla)

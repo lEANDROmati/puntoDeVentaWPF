@@ -8,6 +8,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace puntoDeVenta.ViewModels
 {

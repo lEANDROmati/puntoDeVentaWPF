@@ -90,18 +90,20 @@ namespace puntoDeVenta.ViewModels
             var nuevo = new Usuario
             {
                 NombreUsuario = NuevoUsuarioNombre,
-                Password = NuevoUsuarioPass,
-                Rol = NuevoUsuarioRol
+                // Password = NuevoUsuarioPass, <--- ¡BORRA ESTA LÍNEA! No guardes texto plano
+                Rol = NuevoUsuarioRol,
+                NombreCompleto = NuevoUsuarioNombre, // Opcional
+                Activo = true
             };
 
-            _usuarioService.Guardar(nuevo);
+            _usuarioService.RegistrarUsuario(nuevo, NuevoUsuarioPass);
 
             // Limpiar y Recargar
             NuevoUsuarioNombre = "";
             NuevoUsuarioPass = "";
             CargarUsuarios();
 
-            MessageBox.Show($"Usuario '{nuevo.NombreUsuario}' creado con éxito.");
+            MessageBox.Show($"Usuario '{nuevo.NombreUsuario}' creado con éxito y protegido.");
         }
 
         [RelayCommand]

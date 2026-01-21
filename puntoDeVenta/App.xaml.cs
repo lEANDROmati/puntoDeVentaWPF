@@ -19,6 +19,8 @@ namespace puntoDeVenta
                 // Crea la base de datos y aplica todas las migraciones pendientes
                 // (Incluyendo la creación del usuario Admin)
                 context.Database.Migrate();
+
+                DbSeeder.Inicializar(context);
             }
 
             // Abrir primero el Login

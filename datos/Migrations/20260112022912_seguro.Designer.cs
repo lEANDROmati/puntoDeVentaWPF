@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datos.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251231150400_InicialSQLite")]
-    partial class InicialSQLite
+    [Migration("20260112022912_seguro")]
+    partial class seguro
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -116,7 +116,7 @@ namespace Datos.Migrations
                             Id = 1,
                             Cuit = "00-00000000-0",
                             Direccion = "Sin Dirección Registrada",
-                            ImprimirTicket = true,
+                            ImprimirTicket = false,
                             ManejarIVA = false,
                             NombreNegocio = "Mi Negocio",
                             PorcentajeIVA = 21m,
@@ -275,17 +275,6 @@ namespace Datos.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Usuarios");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Activo = true,
-                            NombreCompleto = "Administrador",
-                            NombreUsuario = "admin",
-                            Password = "123",
-                            Rol = "Admin"
-                        });
                 });
 
             modelBuilder.Entity("Entidades.Venta", b =>
