@@ -2,7 +2,7 @@
 using Entidades;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.IO; // <--- ¡IMPORTANTE! Necesario para manejar archivos y carpetas
+using System.IO; 
 
 namespace Datos
 {

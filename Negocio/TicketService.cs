@@ -2,12 +2,13 @@
 
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Negocio
 {
     public class TicketService
     {
-        public void ImprimirTicket(Venta venta, string nombreNegocio)
+        public async Task ImprimirTicketAsync(Venta venta, string nombreNegocio)
         {
             // AQUÍ IRÍA LA LÓGICA DE IMPRESORA REAL (ESC/POS)
             // Por ahora, generaremos un archivo de texto en el escritorio como simulación
@@ -33,7 +34,7 @@ namespace Negocio
 
             // Guardar en escritorio para probar
             string ruta = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), $"Ticket_{venta.Id}.txt");
-            File.WriteAllText(ruta, sb.ToString());
+            await File.WriteAllTextAsync(ruta, sb.ToString());
         }
     }
 }

@@ -8,6 +8,8 @@ using puntoDeVenta.Views;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using System.Threading.Tasks;
+
 
 
 namespace puntoDeVenta.ViewModels
@@ -46,42 +48,54 @@ namespace puntoDeVenta.ViewModels
                 if (SetProperty(ref textoBusqueda, value))
                 {
                     if (string.IsNullOrEmpty(value)) return;
+                    // Llamada asíncrona segura sin await (fire and forget)
+                    ProcesarBusquedaAsync(value);
+                }
+            }
+        }
 
-                    // CASO 1: MULTIPLICADOR (Ej: "6*779123")
-                    if (value.Contains("*"))
+        private async Task ProcesarBusquedaAsync(string value)
+        {
+            try
+            {
+                // CASO 1: MULTIPLICADOR (Ej: "6*779123")
+                if (value.Contains("*"))
+                {
+                    var partes = value.Split('*');
+                    // Verificamos: [numero] * [algo]
+                    if (partes.Length == 2 && int.TryParse(partes[0], out int cantidad) && cantidad > 0)
                     {
-                        var partes = value.Split('*');
-                        // Verificamos: [numero] * [algo]
-                        if (partes.Length == 2 && int.TryParse(partes[0], out int cantidad) && cantidad > 0)
-                        {
-                            string codigo = partes[1];
-                            // Buscamos el producto por el código de la segunda parte
-                            var producto = _productoService.GetByCodigo(codigo);
+                        string codigo = partes[1];
+                        // Buscamos el producto por el código de la segunda parte
+                        var producto = await _productoService.GetByCodigoAsync(codigo);
 
-                            if (producto != null)
-                            {
-                                AgregarAlCarrito(producto, cantidad); // ¡Agregamos con cantidad!
-
-                                textoBusqueda = ""; // Limpiamos
-                                OnPropertyChanged(nameof(TextoBusqueda));
-                                return; // Salimos para no evaluar lo de abajo
-                            }
-                        }
-                    }
-
-                    // CASO 2: SOLO NÚMEROS (Scan & Go normal)
-                    if (value.All(char.IsDigit))
-                    {
-                        var producto = _productoService.GetByCodigo(value);
                         if (producto != null)
                         {
-                            AgregarAlCarrito(producto, 1); // Cantidad 1 por defecto
+                            AgregarAlCarrito(producto, cantidad); // ¡Agregamos con cantidad!
 
-                            textoBusqueda = "";
+                            textoBusqueda = ""; // Limpiamos
                             OnPropertyChanged(nameof(TextoBusqueda));
+                            return; // Salimos para no evaluar lo de abajo
                         }
                     }
                 }
+
+                // CASO 2: SOLO NÚMEROS (Scan & Go normal)
+                if (value.All(char.IsDigit))
+                {
+                    var producto = await _productoService.GetByCodigoAsync(value);
+                    if (producto != null)
+                    {
+                        AgregarAlCarrito(producto, 1); // Cantidad 1 por defecto
+
+                        textoBusqueda = "";
+                        OnPropertyChanged(nameof(TextoBusqueda));
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                // Manejar error silenciosamente o mostrar log
             }
         }
 
@@ -144,7 +158,7 @@ namespace puntoDeVenta.ViewModels
 
         // --- MÉTODO 2: COBRAR (Convertir y Guardar) ---
         [RelayCommand]
-        private void Cobrar()
+        private async Task Cobrar()
         {
             // 1. Validar carrito
             if (Carrito.Count == 0)
@@ -154,8 +168,8 @@ namespace puntoDeVenta.ViewModels
             }
 
             // 2. Cargar configuración actualizada (para ver si activó/desactivó ticket)
-            var config = _configService.ObtenerConfig();
-            var cajaAbierta = _cajaService.ObtenerCajaAbierta();
+            var config = await _configService.ObtenerConfigAsync();
+            var cajaAbierta = await _cajaService.ObtenerCajaAbiertaAsync();
 
             // 3. Control de Caja (Tu lógica original intacta)
             if (config.UsarControlCaja && cajaAbierta == null)
@@ -163,7 +177,7 @@ namespace puntoDeVenta.ViewModels
                 if (MessageBox.Show("La caja está cerrada. ¿Deseas abrirla?", "Caja Cerrada", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
                     new Views.AperturaCajaWindow().ShowDialog();
-                    cajaAbierta = _cajaService.ObtenerCajaAbierta();
+                    cajaAbierta = await _cajaService.ObtenerCajaAbiertaAsync();
                     if (cajaAbierta == null) return;
                 }
                 else
@@ -192,7 +206,7 @@ namespace puntoDeVenta.ViewModels
                     decimal vuelto = importe - TotalVenta;
 
                     // 5. GUARDAR VENTA
-                    int idVenta = _ventaService.GuardarVenta(TotalVenta, detallesParaGuardar, importe, metodo);
+                    int idVenta = await _ventaService.GuardarVentaAsync(TotalVenta, detallesParaGuardar, importe, metodo);
 
                     // ============================================================
                     // 6. IMPRESIÓN AUTOMÁTICA (Lógica Nueva)
@@ -203,6 +217,7 @@ namespace puntoDeVenta.ViewModels
                         var ventaTicket = new Venta { Id = idVenta, Total = TotalVenta };
 
                         // Llamamos al servicio pasando la CONFIGURACIÓN (que tiene la impresora)
+                        // ImprimirTicket es sincrónico (UI), así que lo llamamos directo
                         _impresionService.ImprimirTicket(
                             ventaTicket,
                             detallesParaGuardar,

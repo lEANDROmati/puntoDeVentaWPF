@@ -1,8 +1,11 @@
 ﻿using Datos;
 using Entidades;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Negocio
 {
@@ -15,15 +18,15 @@ namespace Negocio
             _context = new AppDbContext();
         }
 
-        public List<UnidadMedida> GetActivas()
+        public async Task<List<UnidadMedida>> GetActivasAsync()
         {
-            return _context.UnidadesMedida
+            return await _context.UnidadesMedida
                            .Where(u => u.Activo)
                            .OrderBy(u => u.Nombre)
-                           .ToList();
+                           .ToListAsync();
         }
 
-        public void Guardar(UnidadMedida unidad)
+        public async Task GuardarAsync(UnidadMedida unidad)
         {
             if (string.IsNullOrWhiteSpace(unidad.Nombre))
                 throw new Exception("El nombre es obligatorio.");
@@ -33,23 +36,23 @@ namespace Negocio
 
             if (unidad.Id == 0)
             {
-                _context.UnidadesMedida.Add(unidad);
+                await _context.UnidadesMedida.AddAsync(unidad);
             }
             else
             {
                 _context.UnidadesMedida.Update(unidad);
             }
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public void Eliminar(int id)
+        public async Task EliminarAsync(int id)
         {
-            var unidad = _context.UnidadesMedida.Find(id);
+            var unidad = await _context.UnidadesMedida.FindAsync(id);
             if (unidad != null)
             {
                 unidad.Activo = false;
                 _context.UnidadesMedida.Update(unidad);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
         }
     }

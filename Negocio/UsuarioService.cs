@@ -1,7 +1,9 @@
 ﻿using Datos;
 using Entidades;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using BCrypt.Net;
 
 namespace Negocio
@@ -16,11 +18,11 @@ namespace Negocio
         }
 
         // 1. LOGIN (Ya lo tenías)
-        public Usuario Login(string nombre, string passwordPlana)
+        public async Task<Usuario> LoginAsync(string nombre, string passwordPlana)
         {
             // 1. Buscamos al usuario SOLO por nombre primero
-            var usuario = _context.Usuarios
-                                  .FirstOrDefault(u => u.NombreUsuario == nombre && u.Activo);
+            var usuario = await _context.Usuarios
+                                  .FirstOrDefaultAsync(u => u.NombreUsuario == nombre && u.Activo);
 
             // 2. Si existe, verificamos la contraseña
             if (usuario != null)
@@ -36,50 +38,50 @@ namespace Negocio
 
             return null; // Usuario no existe o contraseña incorrecta
         }
-        public void RegistrarUsuario(Usuario usuario, string passwordPlana)
+        public async Task RegistrarUsuarioAsync(Usuario usuario, string passwordPlana)
         {
             // Hasheamos la contraseña antes de guardar el objeto
             usuario.Password = BCrypt.Net.BCrypt.HashPassword(passwordPlana);
 
             // Guardamos
-            Guardar(usuario); // Reutilizamos tu método Guardar existente
+            await GuardarAsync(usuario); // Reutilizamos tu método Guardar existente
         }
 
         // 2. LISTAR TODOS (Para la tabla)
-        public List<Usuario> ObtenerTodos()
+        public async Task<List<Usuario>> ObtenerTodosAsync()
         {
-            return _context.Usuarios.ToList();
+            return await _context.Usuarios.ToListAsync();
         }
 
         // 3. GUARDAR (Nuevo o Edición)
-        public void Guardar(Usuario usuario)
+        public async Task GuardarAsync(Usuario usuario)
         {
             if (usuario.Id == 0)
             {
-                _context.Usuarios.Add(usuario); // Nuevo
+                await _context.Usuarios.AddAsync(usuario); // Nuevo
             }
             else
             {
                 _context.Usuarios.Update(usuario); // Editar
             }
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
         // 4. ELIMINAR
-        public void Eliminar(int id)
+        public async Task EliminarAsync(int id)
         {
-            var usuario = _context.Usuarios.Find(id);
+            var usuario = await _context.Usuarios.FindAsync(id);
             if (usuario != null)
             {
                 _context.Usuarios.Remove(usuario);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
         }
 
         // 5. VALIDAR SI EXISTE (Para no repetir nombres)
-        public bool ExisteUsuario(string nombre)
+        public async Task<bool> ExisteUsuarioAsync(string nombre)
         {
-            return _context.Usuarios.Any(u => u.NombreUsuario == nombre);
+            return await _context.Usuarios.AnyAsync(u => u.NombreUsuario == nombre);
         }
     }
 }

@@ -7,6 +7,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
 using System.Windows;
+using System.Threading.Tasks;
+using System.Linq;
+
 
 namespace puntoDeVenta.ViewModels
 {
@@ -34,15 +37,15 @@ namespace puntoDeVenta.ViewModels
             ListaVentas = new ObservableCollection<Venta>();
 
             // Buscar automáticamente al entrar
-            BuscarVentas();
+            _ = BuscarVentas();
         }
 
         [RelayCommand]
-        private void BuscarVentas()
+        private async Task BuscarVentas()
         {
             try
             {
-                var ventas = _ventaService.GetVentasPorFecha(FechaInicio, FechaFin);
+                var ventas = await _ventaService.GetVentasPorFechaAsync(FechaInicio, FechaFin);
 
                 ListaVentas.Clear();
                 foreach (var v in ventas) ListaVentas.Add(v);

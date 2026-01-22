@@ -4,7 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using Negocio.DTO;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Negocio
 {
@@ -20,14 +22,14 @@ namespace Negocio
         // 1. Obtener lista completa (con relaciones para ver nombres de Categoria/Unidad)
         
         
-        public List<ProductoDto> GetAll()
+        public async Task<List<ProductoDto>> GetAllAsync()
         {
             // 1. Traemos los datos crudos de la BD
-            var productos = _context.Productos
+            var productos = await _context.Productos
                             .Include(p => p.Categoria)
                             .Include(p => p.UnidadMedida)
                             .Where(p => p.Activo)
-                            .ToList();
+                            .ToListAsync();
 
             // 2. Convertimos a DTO y aplicamos la LÓGICA DE NEGOCIO aquí
             var listaDto = new List<ProductoDto>();
@@ -69,22 +71,22 @@ namespace Negocio
             return listaDto.OrderBy(x => x.Nombre).ToList();
         }
 
-        public Producto GetById(int id)
+        public async Task<Producto> GetByIdAsync(int id)
         {
             // Buscamos el producto real para editarlo
             // No necesitamos .Include aquí porque los Combos de la ventana cargan sus propias listas
-            return _context.Productos.FirstOrDefault(p => p.Id == id);
+            return await _context.Productos.FirstOrDefaultAsync(p => p.Id == id);
         }
 
         // 2. Buscar por código (para validaciones y ventas)
-        public Producto GetByCodigo(string codigo)
+        public async Task<Producto> GetByCodigoAsync(string codigo)
         {
-            return _context.Productos
-                           .FirstOrDefault(p => p.CodigoBarras == codigo && p.Activo);
+            return await _context.Productos
+                           .FirstOrDefaultAsync(p => p.CodigoBarras == codigo && p.Activo);
         }
 
         // 3. Guardar o Editar (Con Validaciones Profesionales)
-        public void Guardar(Producto producto)
+        public async Task GuardarAsync(Producto producto)
         {
             // Validaciones Básicas
             if (string.IsNullOrWhiteSpace(producto.CodigoBarras)) throw new Exception("El Código de Barras es obligatorio.");
@@ -101,8 +103,8 @@ namespace Negocio
             }
 
             // Validación de Duplicados (Código de Barras)
-            var existe = _context.Productos
-                                 .Any(p => p.CodigoBarras == producto.CodigoBarras
+            var existe = await _context.Productos
+                                 .AnyAsync(p => p.CodigoBarras == producto.CodigoBarras
                                            && p.Id != producto.Id // Excluirse a sí mismo si es edición
                                            && p.Activo);
             if (existe)
@@ -112,35 +114,35 @@ namespace Negocio
 
             if (producto.Id == 0)
             {
-                _context.Productos.Add(producto); // Nuevo
+                await _context.Productos.AddAsync(producto); // Nuevo
             }
             else
             {
                 _context.Productos.Update(producto); // Editar
             }
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
         // 4. Eliminar (Soft Delete)
-        public void Delete(int id)
+        public async Task DeleteAsync(int id)
         {
-            var prod = _context.Productos.Find(id);
+            var prod = await _context.Productos.FindAsync(id);
             if (prod != null)
             {
                 prod.Activo = false; // Lo ocultamos, no lo borramos
                 _context.Productos.Update(prod);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
         }
 
         // 5. Búsqueda para el Buscador de Ventas (Nombre o Código)
-        public List<Producto> Search(string texto)
+        public async Task<List<Producto>> SearchAsync(string texto)
         {
-            return _context.Productos
+            return await _context.Productos
                            .Where(p => p.Activo &&
                                       (p.Nombre.Contains(texto) || p.CodigoBarras.Contains(texto)))
                            .Take(20) // Limitamos a 20 para no saturar
-                           .ToList();
+                           .ToListAsync();
         }
     }
 }

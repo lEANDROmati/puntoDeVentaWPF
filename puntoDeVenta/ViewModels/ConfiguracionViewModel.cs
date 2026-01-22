@@ -5,6 +5,9 @@ using Negocio;
 using System.Collections.ObjectModel;
 using System.Printing;
 using System.Windows;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace puntoDeVenta.ViewModels
 {
@@ -23,8 +26,8 @@ namespace puntoDeVenta.ViewModels
 
             ListaUsuarios = new ObservableCollection<Usuario>();
 
-            CargarDatos();
-            CargarUsuarios();
+            _ = CargarDatos();
+            _ = CargarUsuarios();
         }
 
         // --- PROPIEDADES ENLAZADAS A LA PANTALLA ---
@@ -44,10 +47,11 @@ namespace puntoDeVenta.ViewModels
 
         public ObservableCollection<Usuario> ListaUsuarios { get; set; }
         public List<string> ListaRoles { get; } = new List<string> { "Admin", "cajero" };
-        private void CargarDatos()
+        
+        private async Task CargarDatos()
         {
             // 1. Buscamos la configuración en la BD
-            _configActual = _configService.ObtenerConfig();
+            _configActual = await _configService.ObtenerConfigAsync();
 
             // 2. Pasamos los datos a la pantalla
             NombreNegocio = _configActual.NombreNegocio;
@@ -59,15 +63,15 @@ namespace puntoDeVenta.ViewModels
             CargarImpresorasSistema();
         }
 
-        private void CargarUsuarios()
+        private async Task CargarUsuarios()
         {
             ListaUsuarios.Clear();
-            var usuarios = _usuarioService.ObtenerTodos();
+            var usuarios = await _usuarioService.ObtenerTodosAsync();
             foreach (var u in usuarios) ListaUsuarios.Add(u);
         }
 
         [RelayCommand]
-        private void CrearUsuario()
+        private async Task CrearUsuario()
         {
             // Validaciones
             if (string.IsNullOrWhiteSpace(NuevoUsuarioNombre) || string.IsNullOrWhiteSpace(NuevoUsuarioPass))
@@ -80,7 +84,7 @@ namespace puntoDeVenta.ViewModels
                 MessageBox.Show("Debes seleccionar un Rol (Admin o Empleado).");
                 return;
             }
-            if (_usuarioService.ExisteUsuario(NuevoUsuarioNombre))
+            if (await _usuarioService.ExisteUsuarioAsync(NuevoUsuarioNombre))
             {
                 MessageBox.Show("Ya existe un usuario con ese nombre.");
                 return;
@@ -96,18 +100,18 @@ namespace puntoDeVenta.ViewModels
                 Activo = true
             };
 
-            _usuarioService.RegistrarUsuario(nuevo, NuevoUsuarioPass);
+            await _usuarioService.RegistrarUsuarioAsync(nuevo, NuevoUsuarioPass);
 
             // Limpiar y Recargar
             NuevoUsuarioNombre = "";
             NuevoUsuarioPass = "";
-            CargarUsuarios();
+            await CargarUsuarios();
 
             MessageBox.Show($"Usuario '{nuevo.NombreUsuario}' creado con éxito y protegido.");
         }
 
         [RelayCommand]
-        private void EliminarUsuario(Usuario usuario)
+        private async Task EliminarUsuario(Usuario usuario)
         {
             if (usuario == null) return;
 
@@ -120,8 +124,8 @@ namespace puntoDeVenta.ViewModels
 
             if (MessageBox.Show($"¿Eliminar a {usuario.NombreUsuario}?", "Confirmar", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
-                _usuarioService.Eliminar(usuario.Id);
-                CargarUsuarios();
+                await _usuarioService.EliminarAsync(usuario.Id);
+                await CargarUsuarios();
             }
         }
 
@@ -141,7 +145,7 @@ namespace puntoDeVenta.ViewModels
         }
 
         [RelayCommand]
-        private void GuardarCambios()
+        private async Task GuardarCambios()
         {
             try
             {
@@ -152,7 +156,7 @@ namespace puntoDeVenta.ViewModels
                 _configActual.NombreImpresora = NombreImpresora;
 
                 // 2. Guardamos en BD
-                _configService.GuardarConfig(_configActual);
+                await _configService.GuardarConfigAsync(_configActual);
 
                 MessageBox.Show("¡Configuración guardada correctamente!", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
             }

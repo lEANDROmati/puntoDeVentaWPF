@@ -4,14 +4,16 @@ using CommunityToolkit.Mvvm.Input;
 using Entidades;
 using Microsoft.Win32;
 using Negocio;
-using Negocio.DTO; // Asegúrate de tener este using
-using puntoDeVenta.Views; // Para abrir las ventanas hijas (ProductoWindow, etc)
+using Negocio.DTO; 
+using puntoDeVenta.Views; 
 using System;
 using System.Collections.ObjectModel;
-using System.IO; // Para exportar a CSV
+using System.IO; 
 using System.Text;
 using System.Windows;
-  
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 
 
 namespace puntoDeVenta.ViewModels
@@ -45,17 +47,18 @@ namespace puntoDeVenta.ViewModels
         public InventarioViewModel()
         {
             _productoService = new ProductoService();
-            CargarDatos();
+           
+            _ = CargarDatos();
         }
 
-        public void CargarDatos()
+        public async Task CargarDatos()
         {
             try
             {
                 // 1. El servicio devuelve una lista de DTOs (Datos ya procesados)
                 // p.Categoria ya es un string (ej: "Bebidas")
                 // p.Unidad ya es un string (ej: "lt")
-                var productosDto = _productoService.GetAll();
+                var productosDto = await _productoService.GetAllAsync();
 
                 var listaTemporal = new List<ProductoDto>();
 
@@ -136,30 +139,30 @@ namespace puntoDeVenta.ViewModels
         // --- COMANDOS ACTUALIZADOS ---
 
         [RelayCommand]
-        private void NuevoProducto()
+        private async Task NuevoProducto()
         {
             var ventana = new Views.ProductoFormWindow(); // Asegúrate del namespace correcto
             if (ventana.ShowDialog() == true)
             {
-                CargarDatos();
+                await CargarDatos();
             }
         }
 
         // CAMBIO CLAVE: Recibimos el producto como parámetro desde el botón de la fila
         [RelayCommand]
-        private void EditarProducto(ProductoDto producto)
+        private async Task EditarProducto(ProductoDto producto)
         {
             if (producto == null) return;
 
             // Buscamos el producto REAL en la BD
-            var productoReal = _productoService.GetById(producto.Id);
+            var productoReal = await _productoService.GetByIdAsync(producto.Id);
 
             if (productoReal != null)
             {
                 var ventana = new Views.ProductoFormWindow(productoReal);
                 if (ventana.ShowDialog() == true)
                 {
-                    CargarDatos(); // Recargamos para ver los cambios
+                    await CargarDatos(); // Recargamos para ver los cambios
                     TextoBusqueda = ""; // Limpiamos buscador opcionalmente
                 }
             }
@@ -167,14 +170,14 @@ namespace puntoDeVenta.ViewModels
 
         // CAMBIO CLAVE: Recibimos el parámetro
         [RelayCommand]
-        private void EliminarProducto(ProductoDto producto)
+        private async Task EliminarProducto(ProductoDto producto)
         {
             if (producto == null) return;
 
             if (MessageBox.Show($"¿Borrar '{producto.Nombre}' permanentemente?", "Confirmar Eliminación",
                 MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
             {
-                _productoService.Delete(producto.Id);
+                await _productoService.DeleteAsync(producto.Id);
 
                 // Opción rápida: Lo sacamos de la lista visual sin ir a la BD (más rápido)
                 Productos.Remove(producto);
@@ -183,7 +186,7 @@ namespace puntoDeVenta.ViewModels
         }
 
         [RelayCommand]
-        private void IrAMaestros()
+        private async Task IrAMaestros()
         {
             // Crear la ventana contenedora
             var window = new Window
@@ -204,7 +207,7 @@ namespace puntoDeVenta.ViewModels
             window.ShowDialog(); // Esperar a que cierre
 
             // Al volver, recargar los datos del inventario (por si cambiaron nombres de categorías)
-            CargarDatos();
+            await CargarDatos();
         }
 
         [RelayCommand]

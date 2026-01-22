@@ -5,6 +5,7 @@ using Entidades;     // Tus entidades
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace puntoDeVenta.ViewModels
 {
@@ -63,13 +64,15 @@ namespace puntoDeVenta.ViewModels
             _categoriaService = new CategoriaService();
             _unidadService = new UnidadMedidaService();
 
-            CargarDatos();
+            _ = CargarDatos();
         }
 
-        public void CargarDatos()
+        public async Task CargarDatos()
         {
-            Categorias = new ObservableCollection<Categoria>(_categoriaService.GetActivas());
-            Unidades = new ObservableCollection<UnidadMedida>(_unidadService.GetActivas());
+            var cats = await _categoriaService.GetActivasAsync();
+            var units = await _unidadService.GetActivasAsync();
+            Categorias = new ObservableCollection<Categoria>(cats);
+            Unidades = new ObservableCollection<UnidadMedida>(units);
         }
 
         // ==========================================
@@ -84,7 +87,7 @@ namespace puntoDeVenta.ViewModels
         }
 
         [RelayCommand]
-        private void GuardarCategoria()
+        private async Task GuardarCategoria()
         {
             if (string.IsNullOrWhiteSpace(NombreCategoria)) return;
 
@@ -92,22 +95,22 @@ namespace puntoDeVenta.ViewModels
             cat.Nombre = NombreCategoria;
             cat.Activo = true; // Por defecto
 
-            _categoriaService.Guardar(cat); // Asegúrate que tu servicio tenga este método
+            await _categoriaService.GuardarAsync(cat); // Asegúrate que tu servicio tenga este método
 
             NuevaCategoria(); // Limpiar
-            CargarDatos();    // Refrescar lista
+            await CargarDatos();    // Refrescar lista
         }
 
         [RelayCommand]
-        private void EliminarCategoria()
+        private async Task EliminarCategoria()
         {
             if (CategoriaSeleccionada == null) return;
 
             // Aquí idealmente validas si hay productos usando esta categoría antes de borrar
-            _categoriaService.Eliminar(CategoriaSeleccionada.Id); // O desactivar
+            await _categoriaService.EliminarAsync(CategoriaSeleccionada.Id); // O desactivar
 
             NuevaCategoria();
-            CargarDatos();
+            await CargarDatos();
         }
 
         // ==========================================
@@ -123,7 +126,7 @@ namespace puntoDeVenta.ViewModels
         }
 
         [RelayCommand]
-        private void GuardarUnidad()
+        private async Task GuardarUnidad()
         {
             if (string.IsNullOrWhiteSpace(NombreUnidad)) return;
 
@@ -132,21 +135,21 @@ namespace puntoDeVenta.ViewModels
             uni.Abreviatura = AbrevUnidad;
             uni.Activo = true;
 
-            _unidadService.Guardar(uni);
+            await _unidadService.GuardarAsync(uni);
 
             NuevaUnidad();
-            CargarDatos();
+            await CargarDatos();
         }
 
         [RelayCommand]
-        private void EliminarUnidad()
+        private async Task EliminarUnidad()
         {
             if (UnidadSeleccionada == null) return;
 
-            _unidadService.Eliminar(UnidadSeleccionada.Id);
+            await _unidadService.EliminarAsync(UnidadSeleccionada.Id);
 
             NuevaUnidad();
-            CargarDatos();
+            await CargarDatos();
         }
     }
 }

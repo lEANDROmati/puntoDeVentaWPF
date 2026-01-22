@@ -1,8 +1,11 @@
 ﻿using Datos;
 using Entidades;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Negocio
 {
@@ -15,17 +18,17 @@ namespace Negocio
             _context = new AppDbContext();
         }
 
-        // 1. Obtener solo las activas (para llenar ComboBoxes)
-        public List<Categoria> GetActivas()
+        // 1. Obtener solo las activas
+        public async Task<List<Categoria>> GetActivasAsync()
         {
-            return _context.Categorias
+            return await _context.Categorias
                            .Where(c => c.Activo)
                            .OrderBy(c => c.Nombre)
-                           .ToList();
+                           .ToListAsync();
         }
 
         // 2. Guardar o Editar (Upsert)
-        public void Guardar(Categoria categoria)
+        public async Task GuardarAsync(Categoria categoria)
         {
             if (string.IsNullOrWhiteSpace(categoria.Nombre))
                 throw new Exception("El nombre de la categoría es obligatorio.");
@@ -33,27 +36,26 @@ namespace Negocio
             if (categoria.Id == 0)
             {
                 // Es Nueva
-                _context.Categorias.Add(categoria);
+                await _context.Categorias.AddAsync(categoria);
             }
             else
             {
                 // Es Edición
                 _context.Categorias.Update(categoria);
             }
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
         // 3. Eliminar (Borrado Lógico)
-        public void Eliminar(int id)
+        public async Task EliminarAsync(int id)
         {
-            var categoria = _context.Categorias.Find(id);
+            var categoria = await _context.Categorias.FindAsync(id);
             if (categoria != null)
             {
-                // NO hacemos Remove. Solo la desactivamos.
-                // Así los productos viejos no pierden su categoría histórica.
+              
                 categoria.Activo = false;
                 _context.Categorias.Update(categoria);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
         }
     }

@@ -1,29 +1,30 @@
 ﻿using Datos;
 using Entidades;
-
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Negocio
 {
     public class CajaService
     {
         // Verificar si hay una caja abierta
-        public CajaSesion? ObtenerCajaAbierta()
+        public async Task<CajaSesion?> ObtenerCajaAbiertaAsync()
         {
             using (var db = new AppDbContext())
             {
-                return db.CajasSesiones
+                return await db.CajasSesiones
                          .OrderByDescending(c => c.Id)
-                         .FirstOrDefault(c => c.EstaAbierta);
+                         .FirstOrDefaultAsync(c => c.EstaAbierta);
             }
         }
 
-        public void AbrirCaja(decimal montoInicial)
+        public async Task AbrirCajaAsync(decimal montoInicial)
         {
             using (var db = new AppDbContext())
             {
-                if (ObtenerCajaAbierta() != null)
+                if (await ObtenerCajaAbiertaAsync() != null)
                     throw new Exception("Ya hay una caja abierta.");
 
                 var nuevaSesion = new CajaSesion 
@@ -32,23 +33,23 @@ namespace Negocio
                     FechaApertura = DateTime.Now,
                     EstaAbierta = true
                 };
-                db.CajasSesiones.Add(nuevaSesion);
-                db.SaveChanges();
+                await db.CajasSesiones.AddAsync(nuevaSesion);
+                await db.SaveChangesAsync();
             }
         }
 
-        public void CerrarCaja(decimal montoFinal)
+        public async Task CerrarCajaAsync(decimal montoFinal)
         {
             using (var db = new AppDbContext())
             {
-                var caja = db.CajasSesiones.FirstOrDefault(c => c.EstaAbierta);
+                var caja = await db.CajasSesiones.FirstOrDefaultAsync(c => c.EstaAbierta);
                 if (caja == null) throw new Exception("No hay caja abierta para cerrar.");
 
                 caja.FechaCierre = DateTime.Now;
                 caja.MontoFinal = montoFinal;
                 caja.EstaAbierta = false;
 
-                db.SaveChanges();
+                await db.SaveChangesAsync();
             }
         }
     }

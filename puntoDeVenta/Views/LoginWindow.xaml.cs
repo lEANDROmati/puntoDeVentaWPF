@@ -41,7 +41,7 @@ namespace puntoDeVenta.Views
         }
 
         // 3. LÓGICA DE LOGIN
-        private void BtnLogin_Click(object sender, RoutedEventArgs e)
+        private async void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
             string user = txtUsuario.Text;
             string pass = txtPassword.Password;
@@ -53,7 +53,7 @@ namespace puntoDeVenta.Views
             }
 
             // Llamamos al servicio
-            var usuarioEncontrado = _usuarioService.Login(user, pass);
+            var usuarioEncontrado = await _usuarioService.LoginAsync(user, pass);
 
             if (usuarioEncontrado != null)
             {

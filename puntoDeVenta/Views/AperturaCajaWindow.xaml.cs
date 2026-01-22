@@ -21,7 +21,7 @@ namespace puntoDeVenta.Views
             };
         }
 
-        private void BtnAceptar_Click(object sender, RoutedEventArgs e)
+        private async void BtnAceptar_Click(object sender, RoutedEventArgs e)
         {
             if (decimal.TryParse(txtMonto.Text, out decimal monto))
             {
@@ -29,7 +29,7 @@ namespace puntoDeVenta.Views
                 {
                     // --- PASO CRÍTICO QUE FALTABA ---
                     // Guardamos en la Base de Datos
-                    _cajaService.AbrirCaja(monto);
+                    await _cajaService.AbrirCajaAsync(monto);
                     // --------------------------------
 
                     MontoIngresado = monto;

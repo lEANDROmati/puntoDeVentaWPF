@@ -40,10 +40,10 @@ namespace puntoDeVenta.Views
             };
         }
 
-        private void CargarDatos()
+        private async void CargarDatos()
         {
             // Ahora sí coinciden los tipos (List<ProductoDto>)
-            _todosLosProductos = _productoService.GetAll();
+            _todosLosProductos = await _productoService.GetAllAsync();
             gridProductos.ItemsSource = _todosLosProductos;
         }
 

@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 namespace puntoDeVenta.ViewModels
 {
@@ -39,21 +40,25 @@ namespace puntoDeVenta.ViewModels
             _cajaService = new CajaService();
             DatosGrafico = new ObservableCollection<DatoGrafico>();
 
-            CargarMetricas();
-
-            // Por defecto cargamos la semana
-            FiltrarSemana();
+            // Iniciamos la carga asincrónica sin bloquear
+            _ = InicializarDashboard();
         }
 
-        public void CargarMetricas()
+        private async Task InicializarDashboard()
+        {
+            await CargarMetricas();
+            await FiltrarSemana();
+        }
+
+        public async Task CargarMetricas()
         {
             try
             {
-                var ventas = _ventaService.GetVentasPorFecha(DateTime.Today, DateTime.Now);
+                var ventas = await _ventaService.GetVentasPorFechaAsync(DateTime.Today, DateTime.Now);
                 VentasHoy = ventas.Sum(v => v.Total);
                 CantidadTicketsHoy = ventas.Count;
 
-                var productos = _productoService.GetAll();
+                var productos = await _productoService.GetAllAsync();
                 ProductosBajoStock = productos.Count(p => p.EstadoStock == "STOCK BAJO");
 
                 MensajeRendimiento = VentasHoy > 0 ? "¡Ventas activas!" : "Esperando primera venta...";
@@ -67,34 +72,34 @@ namespace puntoDeVenta.ViewModels
         // --- COMANDOS DE FILTROS ---
 
         [RelayCommand]
-        private void FiltrarDia()
+        private async Task FiltrarDia()
         {
             TituloGrafico = "Rendimiento: Hoy (Por Hora)";
-            CargarGrafico(DateTime.Today, DateTime.Now, esPorHora: true);
+            await CargarGrafico(DateTime.Today, DateTime.Now, esPorHora: true);
         }
 
         [RelayCommand]
-        private void FiltrarSemana()
+        private async Task FiltrarSemana()
         {
             TituloGrafico = "Rendimiento: Últimos 7 Días";
             // Desde hace 6 días hasta hoy (total 7)
-            CargarGrafico(DateTime.Today.AddDays(-6), DateTime.Now, esPorHora: false);
+            await CargarGrafico(DateTime.Today.AddDays(-6), DateTime.Now, esPorHora: false);
         }
 
         [RelayCommand]
-        private void FiltrarQuincena()
+        private async Task FiltrarQuincena()
         {
             TituloGrafico = "Rendimiento: Últimos 15 Días";
-            CargarGrafico(DateTime.Today.AddDays(-14), DateTime.Now, esPorHora: false);
+            await CargarGrafico(DateTime.Today.AddDays(-14), DateTime.Now, esPorHora: false);
         }
 
         // --- LÓGICA DEL GRÁFICO ---
-        private void CargarGrafico(DateTime desde, DateTime hasta, bool esPorHora)
+        private async Task CargarGrafico(DateTime desde, DateTime hasta, bool esPorHora)
         {
             try
             {
                 // 1. Obtener ventas crudas del rango
-                var ventas = _ventaService.GetVentasPorFecha(desde, hasta);
+                var ventas = await _ventaService.GetVentasPorFechaAsync(desde, hasta);
                 DatosGrafico.Clear();
 
                 // 2. Definir el eje X (las etiquetas)
@@ -163,12 +168,12 @@ namespace puntoDeVenta.ViewModels
 
         // ... MANTENER EL RESTO DE TUS MÉTODOS (CerrarCaja, etc) ...
         [RelayCommand]
-        private void CerrarCaja()
+        private async Task CerrarCaja()
         {
             try
             {
                 // 1. Obtener la sesión de caja actual
-                var cajaActual = _cajaService.ObtenerCajaAbierta();
+                var cajaActual = await _cajaService.ObtenerCajaAbiertaAsync();
 
                 if (cajaActual == null)
                 {
@@ -181,7 +186,7 @@ namespace puntoDeVenta.ViewModels
                 // ========================================================================
 
                 // A. Traemos todas las ventas del día (usamos DateTime.Now para cerrar hasta el momento actual)
-                var ventasDelDia = _ventaService.GetVentasPorFecha(cajaActual.FechaApertura, DateTime.Now);
+                var ventasDelDia = await _ventaService.GetVentasPorFechaAsync(cajaActual.FechaApertura, DateTime.Now);
 
                 // B. FILTRO DE SEGURIDAD: 
                 // Aseguramos que las ventas sean POSTERIORES a la hora de apertura exacta
@@ -209,7 +214,7 @@ namespace puntoDeVenta.ViewModels
                     decimal montoRealUsuario = ventanaCierre.MontoRealEnCaja;
 
                     // 4. Guardamos el cierre
-                    _cajaService.CerrarCaja(montoRealUsuario);
+                    await _cajaService.CerrarCajaAsync(montoRealUsuario);
 
                     // 5. Calculamos la diferencia final para el reporte
                     decimal diferencia = montoRealUsuario - montoEsperadoSistema;
@@ -222,8 +227,8 @@ namespace puntoDeVenta.ViewModels
                                     "Reporte Z", MessageBoxButton.OK, MessageBoxImage.Information);
 
                     // 6. Recargar Dashboard
-                    CargarMetricas();
-                    FiltrarDia();
+                    await CargarMetricas();
+                    await FiltrarDia();
                 }
             }
             catch (Exception ex)

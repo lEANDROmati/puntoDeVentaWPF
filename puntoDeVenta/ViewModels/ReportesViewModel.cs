@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
 using System.Windows;
+using System.Threading.Tasks;
 
 namespace puntoDeVenta.ViewModels
 {
@@ -29,21 +30,21 @@ namespace puntoDeVenta.ViewModels
             TopProductos = new ObservableCollection<ReporteDto>();
 
             // Generar reporte al entrar
-            GenerarReporte();
+            _ = GenerarReporte();
         }
 
         [RelayCommand]
-        private void GenerarReporte()
+        private async Task GenerarReporte()
         {
             try
             {
                 // 1. Categorías
-                var catData = _reporteService.ObtenerVentasPorCategoria(FechaInicio, FechaFin);
+                var catData = await _reporteService.ObtenerVentasPorCategoriaAsync(FechaInicio, FechaFin);
                 VentasPorCategoria.Clear();
                 foreach (var item in catData) VentasPorCategoria.Add(item);
 
                 // 2. Top Productos
-                var topData = _reporteService.ObtenerTopProductos(FechaInicio, FechaFin);
+                var topData = await _reporteService.ObtenerTopProductosAsync(FechaInicio, FechaFin);
                 TopProductos.Clear();
                 foreach (var item in topData) TopProductos.Add(item);
             }

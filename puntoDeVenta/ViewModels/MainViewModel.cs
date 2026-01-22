@@ -64,7 +64,7 @@ namespace puntoDeVenta.ViewModels
             // Al iniciar, mostramos la Caja
             CurrentView = VmDashboard;
             IniciarReloj();
-            CargarConfiguracion();
+            _ = CargarConfiguracion();
         }
 
         // --- COMANDOS DE NAVEGACIÓN ---
@@ -95,12 +95,12 @@ namespace puntoDeVenta.ViewModels
 
         [ObservableProperty]
         private string nombreSucursal;
-        public void CargarConfiguracion()
+        public async System.Threading.Tasks.Task CargarConfiguracion()
         {
             try
             {
                 var configService = new ConfigService();
-                var config = configService.ObtenerConfig();
+                var config = await configService.ObtenerConfigAsync();
 
                 // Al usar [ObservableProperty] en 'nombreSucursal', 
                 // se genera automáticamente 'NombreSucursal' (con Mayúscula).

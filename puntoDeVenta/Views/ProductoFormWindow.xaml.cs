@@ -35,15 +35,19 @@ namespace puntoDeVenta.Views
             _unidadService = new UnidadMedidaService();
 
             _productoActual = new Producto();
-            CargarCombos();
+            CargarCombos();             // Async fire-and-forget
             ConectarEventosCalculadora(); // <--- Conectamos la magia
         }
 
         // Constructor para EDITAR
-        public ProductoFormWindow(Producto productoAEditar) : this()
+        public ProductoFormWindow(Producto productoAEditar) : this() // llama al constructor sin parametros primero
         {
             _productoActual = productoAEditar;
             this.DataContext = _productoActual;
+            // Se sobreescribe lo de CargarCombos que se ejecutó en this() ???
+            // Ojo: CargarCombos es async ahora.
+            // Mejor esperamos CargarCombos? No podemos en ctor.
+            // CargarDatosEnPantalla solo setea textos.
             CargarDatosEnPantalla();
         }
 
@@ -61,6 +65,7 @@ namespace puntoDeVenta.Views
             btnCancelar.Click += (s, e) => this.Close();
             btnGenerarCodigo.Click += BtnGenerarCodigo_Click;
         }
+
         private void CalcularMargen()
         {
             // Si estamos cargando o calculando el precio, ALTO.
@@ -89,15 +94,6 @@ namespace puntoDeVenta.Views
             {
                 _isCalculating = false; // 🟢 Desbloqueo
             }
-        }
-
-        private void CargarCombos()
-        {
-            cmbCategoria.ItemsSource = _categoriaService.GetActivas();
-            cmbUnidad.ItemsSource = _unidadService.GetActivas();
-
-            cmbCategoria.SelectedIndex = 0;
-            cmbUnidad.SelectedIndex = 0;
         }
 
         private void CargarDatosEnPantalla()
@@ -130,6 +126,25 @@ namespace puntoDeVenta.Views
             finally 
             {
                 _cargandoDatos = false; 
+            }
+        }
+
+        private async void CargarCombos()
+        {
+            var cats = await _categoriaService.GetActivasAsync();
+            var units = await _unidadService.GetActivasAsync();
+
+            cmbCategoria.ItemsSource = cats;
+            cmbUnidad.ItemsSource = units;
+
+            cmbCategoria.SelectedIndex = 0;
+            cmbUnidad.SelectedIndex = 0;
+            
+            // Si estábamos en modo editar, recargamos la selección
+            if (_productoActual != null && _productoActual.Id > 0)
+            {
+                 cmbCategoria.SelectedValue = _productoActual.CategoriaId;
+                 cmbUnidad.SelectedValue = _productoActual.UnidadMedidaId;
             }
         }
 
@@ -167,7 +182,7 @@ namespace puntoDeVenta.Views
             txtCodigo.Text = codigo;
         }
 
-        private void BtnGuardar_Click(object sender, RoutedEventArgs e)
+        private async void BtnGuardar_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -201,7 +216,7 @@ namespace puntoDeVenta.Views
                     _productoActual.UnidadMedidaId = (int)cmbUnidad.SelectedValue;
 
                 // Guardar
-                _productoService.Guardar(_productoActual);
+                await _productoService.GuardarAsync(_productoActual);
 
                 MessageBox.Show("Producto guardado con éxito.", "Inventario", MessageBoxButton.OK, MessageBoxImage.Information);
                 this.DialogResult = true;
