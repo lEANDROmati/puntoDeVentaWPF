@@ -9,8 +9,8 @@ namespace Entidades
 
         [Required]
         [MaxLength(50)]
-        public string Nombre { get; set; } // Ej: Bebidas, Limpieza
+        public string Nombre { get; set; } 
 
-        public bool Activo { get; set; } = true; // Para borrado lógico
+        public bool Activo { get; set; } = true; 
     }
 }

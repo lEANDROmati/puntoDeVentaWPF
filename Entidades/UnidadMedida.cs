@@ -9,10 +9,10 @@ namespace Entidades
 
         [Required]
         [MaxLength(50)]
-        public string Nombre { get; set; } // Ej: Kilogramo, Litro, Unidad
+        public string Nombre { get; set; } 
 
         [MaxLength(10)]
-        public string Abreviatura { get; set; } // Ej: kg, lt, un
+        public string Abreviatura { get; set; } 
 
         public bool Activo { get; set; } = true;
     }

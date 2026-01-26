@@ -24,7 +24,7 @@ namespace Negocio
             }
         }
 
-        // Método para guardar cambios desde la pantalla de ajustes
+        // Método para guardar cambios desde la pantalla de configuración
         public async Task GuardarConfigAsync(Configuracion c)
         {
             using (var db = new AppDbContext())

@@ -9,7 +9,7 @@ namespace puntoDeVenta.ViewModels
 {
     public partial class MainViewModel : ObservableObject
     {
-        // ViewModels disponibles
+       
         public VentasViewModel VmCaja { get; } = new VentasViewModel();
         public InventarioViewModel VmInventario { get; } = new InventarioViewModel();
         public HistorialViewModel VmHistorial { get; } = new HistorialViewModel();
@@ -17,7 +17,7 @@ namespace puntoDeVenta.ViewModels
         public ConfiguracionViewModel VmConfiguracion { get; } = new ConfiguracionViewModel();
         public ReportesViewModel VmReportes { get; } = new ReportesViewModel(); 
 
-        // Vista Actual (Lo que se muestra en pantalla)
+     
 
         [ObservableProperty]
         private Visibility menuVisibility = Visibility.Visible; // Menú lateral
@@ -27,16 +27,16 @@ namespace puntoDeVenta.ViewModels
 
         partial void OnCurrentViewChanged(object value)
         {
-            // Si la vista actual es la CAJA (VentasViewModel)
+           
             if (value is VentasViewModel)
             {
-                // Ocultamos menú, mostramos botón Home
+               
                 MenuVisibility = Visibility.Collapsed;
                 HomeButtonVisibility = Visibility.Visible;
             }
             else
             {
-                // Mostramos menú, ocultamos botón Home
+                
                 MenuVisibility = Visibility.Visible;
                 HomeButtonVisibility = Visibility.Collapsed;
             }
@@ -45,7 +45,7 @@ namespace puntoDeVenta.ViewModels
         [ObservableProperty]
         private object currentView;
 
-        // Propiedad para la Hora
+       
         [ObservableProperty]
         private string fechaHoraActual;
 
@@ -61,7 +61,7 @@ namespace puntoDeVenta.ViewModels
             {
                 EsAdmin = false;
             }
-            // Al iniciar, mostramos la Caja
+            
             CurrentView = VmDashboard;
             IniciarReloj();
             _ = CargarConfiguracion();
@@ -101,9 +101,6 @@ namespace puntoDeVenta.ViewModels
             {
                 var configService = new ConfigService();
                 var config = await configService.ObtenerConfigAsync();
-
-                // Al usar [ObservableProperty] en 'nombreSucursal', 
-                // se genera automáticamente 'NombreSucursal' (con Mayúscula).
                 NombreSucursal = config.NombreNegocio;
             }
             catch

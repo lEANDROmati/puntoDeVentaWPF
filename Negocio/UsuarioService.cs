@@ -17,14 +17,14 @@ namespace Negocio
             _context = new AppDbContext();
         }
 
-        // 1. LOGIN (Ya lo tenías)
+        
         public async Task<Usuario> LoginAsync(string nombre, string passwordPlana)
         {
-            // 1. Buscamos al usuario SOLO por nombre primero
+            
             var usuario = await _context.Usuarios
                                   .FirstOrDefaultAsync(u => u.NombreUsuario == nombre && u.Activo);
 
-            // 2. Si existe, verificamos la contraseña
+            
             if (usuario != null)
             {
                 // Verify toma la password escrita (ej: "123") y el hash de la BD ($2a$11$...)
@@ -44,16 +44,16 @@ namespace Negocio
             usuario.Password = BCrypt.Net.BCrypt.HashPassword(passwordPlana);
 
             // Guardamos
-            await GuardarAsync(usuario); // Reutilizamos tu método Guardar existente
+            await GuardarAsync(usuario);
         }
 
-        // 2. LISTAR TODOS (Para la tabla)
+        
         public async Task<List<Usuario>> ObtenerTodosAsync()
         {
             return await _context.Usuarios.ToListAsync();
         }
 
-        // 3. GUARDAR (Nuevo o Edición)
+        
         public async Task GuardarAsync(Usuario usuario)
         {
             if (usuario.Id == 0)
@@ -67,7 +67,7 @@ namespace Negocio
             await _context.SaveChangesAsync();
         }
 
-        // 4. ELIMINAR
+        
         public async Task EliminarAsync(int id)
         {
             var usuario = await _context.Usuarios.FindAsync(id);
@@ -78,7 +78,7 @@ namespace Negocio
             }
         }
 
-        // 5. VALIDAR SI EXISTE (Para no repetir nombres)
+        // VALIDAR SI EXISTE 
         public async Task<bool> ExisteUsuarioAsync(string nombre)
         {
             return await _context.Usuarios.AnyAsync(u => u.NombreUsuario == nombre);

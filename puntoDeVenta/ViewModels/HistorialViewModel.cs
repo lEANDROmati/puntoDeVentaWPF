@@ -17,17 +17,17 @@ namespace puntoDeVenta.ViewModels
     {
         private readonly VentaService _ventaService;
 
-        // Filtros de fecha (Por defecto: Hoy)
+       
         [ObservableProperty] private DateTime fechaInicio = DateTime.Now;
         [ObservableProperty] private DateTime fechaFin = DateTime.Now;
 
-        // Lista de ventas para la tabla
+        
         [ObservableProperty] private ObservableCollection<Venta> listaVentas;
 
-        // Venta seleccionada (para ver detalles futuro)
+       
         [ObservableProperty] private Venta ventaSeleccionada;
 
-        // Totales del período
+      
         [ObservableProperty] private decimal totalVendido;
         [ObservableProperty] private int cantidadVentas;
 
@@ -36,7 +36,7 @@ namespace puntoDeVenta.ViewModels
             _ventaService = new VentaService();
             ListaVentas = new ObservableCollection<Venta>();
 
-            // Buscar automáticamente al entrar
+            
             _ = BuscarVentas();
         }
 

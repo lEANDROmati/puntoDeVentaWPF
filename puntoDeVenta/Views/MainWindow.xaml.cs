@@ -14,13 +14,12 @@ namespace puntoDeVenta.Views
             _posicionAnterior = new Rect(100, 100, 1000, 700);
         }
 
-        // 1. ARRASTRAR VENTANA (DragMove)
-        // Se ejecuta al hacer clic en cualquier parte vacía de la ventana
+        
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
             {
-                // Solo arrastramos si NO estamos tocando botones u otros controles interactivos
+                
                 this.DragMove();
             }
         }

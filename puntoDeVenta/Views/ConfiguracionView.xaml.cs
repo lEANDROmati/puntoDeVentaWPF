@@ -13,9 +13,7 @@ using System.Windows.Shapes;
 
 namespace puntoDeVenta.Views
 {
-    /// <summary>
-    /// Lógica de interacción para ConfiguracionView.xaml
-    /// </summary>
+   
     public partial class ConfiguracionView : UserControl
     {
         public ConfiguracionView()

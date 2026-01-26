@@ -22,15 +22,14 @@ namespace puntoDeVenta.ViewModels
     {
         private readonly ProductoService _productoService;
 
-        // 1. LISTA VISIBLE EN PANTALLA (La que cambia al buscar)
-        // Le cambiamos el nombre a 'Productos' para que coincida con el XAML
+        
         [ObservableProperty]
         private ObservableCollection<ProductoDto> productos;
 
-        // 2. LISTA "MAESTRA" EN MEMORIA (Respaldo para cuando borras la búsqueda)
+        
         private List<ProductoDto> _listaCompletaRespaldo;
 
-        // 3. PROPIEDAD DEL BUSCADOR
+        
         private string textoBusqueda;
         public string TextoBusqueda
         {
@@ -39,7 +38,7 @@ namespace puntoDeVenta.ViewModels
             {
                 if (SetProperty(ref textoBusqueda, value))
                 {
-                    FiltrarResultados(); // ¡Magia! Filtra cada vez que escribes
+                    FiltrarResultados(); 
                 }
             }
         }
@@ -55,37 +54,27 @@ namespace puntoDeVenta.ViewModels
         {
             try
             {
-                // 1. El servicio devuelve una lista de DTOs (Datos ya procesados)
-                // p.Categoria ya es un string (ej: "Bebidas")
-                // p.Unidad ya es un string (ej: "lt")
+               
                 var productosDto = await _productoService.GetAllAsync();
 
                 var listaTemporal = new List<ProductoDto>();
 
                 foreach (var p in productosDto)
                 {
-                    // Recalculamos estado y margen solo para asegurarnos que la visual esté fresca,
-                    // aunque el servicio ya suele traerlo.
+                   
                     string estado = CalcularEstado(p.Stock, p.StockMinimo);
 
-                    // Protección contra división por cero
+                  
                     decimal margen = (p.PrecioCompra == 0) ? 0 : (p.PrecioVenta - p.PrecioCompra) / p.PrecioCompra;
 
                     listaTemporal.Add(new ProductoDto
                     {
                         Id = p.Id,
                         CodigoBarras = p.CodigoBarras,
-                        Nombre = p.Nombre,
-
-                        // --- CORRECCIÓN AQUÍ ---
-                        // Antes: p.Categoria.Nombre (Error porque p.Categoria ya es string)
-                        // Ahora: p.Categoria (Correcto)
-                        Categoria = p.Categoria,
-
-                        // Antes: p.UnidadMedida.Abreviatura (Error porque el DTO no tiene objeto UnidadMedida)
-                        // Ahora: p.Unidad (Correcto)
+                        Nombre = p.Nombre,                      
+                        Categoria = p.Categoria,                       
                         Unidad = p.Unidad,
-                        // -----------------------
+                        
 
                         PrecioCompra = p.PrecioCompra,
                         PrecioVenta = p.PrecioVenta,
@@ -96,7 +85,7 @@ namespace puntoDeVenta.ViewModels
                     });
                 }
 
-                // Guardamos en el respaldo y en la visual
+              
                 _listaCompletaRespaldo = listaTemporal;
                 Productos = new ObservableCollection<ProductoDto>(_listaCompletaRespaldo);
             }
@@ -106,19 +95,19 @@ namespace puntoDeVenta.ViewModels
             }
         }
 
-        // --- LÓGICA DEL BUSCADOR ---
+       
         private void FiltrarResultados()
         {
             if (_listaCompletaRespaldo == null) return;
 
             if (string.IsNullOrWhiteSpace(TextoBusqueda))
             {
-                // Si borró todo, mostramos la lista completa original
+                
                 Productos = new ObservableCollection<ProductoDto>(_listaCompletaRespaldo);
             }
             else
             {
-                // Filtramos por Nombre O Código
+                
                 var filtrados = _listaCompletaRespaldo
                     .Where(p => p.Nombre.ToLower().Contains(TextoBusqueda.ToLower()) ||
                                 p.CodigoBarras.Contains(TextoBusqueda))
@@ -128,7 +117,7 @@ namespace puntoDeVenta.ViewModels
             }
         }
 
-        // Tu lógica de colores (Perfecta, la dejamos igual)
+       
         private string CalcularEstado(int stock, int minimo)
         {
             if (stock <= minimo) return "STOCK BAJO";
@@ -136,25 +125,24 @@ namespace puntoDeVenta.ViewModels
             return "STOCK ALTO";
         }
 
-        // --- COMANDOS ACTUALIZADOS ---
-
+      
         [RelayCommand]
         private async Task NuevoProducto()
         {
-            var ventana = new Views.ProductoFormWindow(); // Asegúrate del namespace correcto
+            var ventana = new Views.ProductoFormWindow(); 
             if (ventana.ShowDialog() == true)
             {
                 await CargarDatos();
             }
         }
 
-        // CAMBIO CLAVE: Recibimos el producto como parámetro desde el botón de la fila
+       
         [RelayCommand]
         private async Task EditarProducto(ProductoDto producto)
         {
             if (producto == null) return;
 
-            // Buscamos el producto REAL en la BD
+           
             var productoReal = await _productoService.GetByIdAsync(producto.Id);
 
             if (productoReal != null)
@@ -162,13 +150,13 @@ namespace puntoDeVenta.ViewModels
                 var ventana = new Views.ProductoFormWindow(productoReal);
                 if (ventana.ShowDialog() == true)
                 {
-                    await CargarDatos(); // Recargamos para ver los cambios
-                    TextoBusqueda = ""; // Limpiamos buscador opcionalmente
+                    await CargarDatos();
+                    TextoBusqueda = ""; 
                 }
             }
         }
 
-        // CAMBIO CLAVE: Recibimos el parámetro
+       
         [RelayCommand]
         private async Task EliminarProducto(ProductoDto producto)
         {
@@ -179,7 +167,7 @@ namespace puntoDeVenta.ViewModels
             {
                 await _productoService.DeleteAsync(producto.Id);
 
-                // Opción rápida: Lo sacamos de la lista visual sin ir a la BD (más rápido)
+               
                 Productos.Remove(producto);
                 _listaCompletaRespaldo.Remove(producto);
             }
@@ -197,16 +185,16 @@ namespace puntoDeVenta.ViewModels
                 WindowStartupLocation = WindowStartupLocation.CenterScreen,
                 ResizeMode = ResizeMode.NoResize,
 
-                // Aquí instanciamos la Vista y le asignamos su ViewModel
+                
                 Content = new Views.GestionMaestrosView
                 {
                     DataContext = new GestionMaestrosViewModel()
                 }
             };
 
-            window.ShowDialog(); // Esperar a que cierre
+            window.ShowDialog(); 
 
-            // Al volver, recargar los datos del inventario (por si cambiaron nombres de categorías)
+           
             await CargarDatos();
         }
 
@@ -215,7 +203,7 @@ namespace puntoDeVenta.ViewModels
         {
             try
             {
-                // 1. Preguntar al usuario dónde quiere guardar el archivo
+                
                 var saveFileDialog = new SaveFileDialog
                 {
                     Filter = "Archivo Excel|*.xlsx",
@@ -225,7 +213,7 @@ namespace puntoDeVenta.ViewModels
 
                 if (saveFileDialog.ShowDialog() == true)
                 {
-                    // 2. Crear el libro de Excel en memoria
+                    //. Crear el libro de Excel en memoria
                     using (var workbook = new XLWorkbook())
                     {
                         var worksheet = workbook.Worksheets.Add("Productos");
@@ -249,7 +237,7 @@ namespace puntoDeVenta.ViewModels
 
                         // --- DATOS ---
                         int fila = 2;
-                        // Usamos 'Productos' que es la lista que se ve en pantalla (filtrada o completa)
+                        
                         foreach (var p in Productos)
                         {
                             worksheet.Cell(fila, 1).Value = "'" + p.CodigoBarras; // Comilla para que Excel no lo convierta a notación científica

@@ -32,7 +32,7 @@ namespace puntoDeVenta.ViewModels
 
         // --- PROPIEDADES ENLAZADAS A LA PANTALLA ---
         [ObservableProperty] private string nombreNegocio;
-        [ObservableProperty] private string direccionNegocio; // Campo nuevo sugerido
+        [ObservableProperty] private string direccionNegocio; 
         [ObservableProperty] private bool imprimirTicket;
         [ObservableProperty] private bool usarControlCaja;
         [ObservableProperty] private string nombreImpresora;
@@ -43,22 +43,22 @@ namespace puntoDeVenta.ViewModels
 
         [ObservableProperty] private string nuevoUsuarioNombre;
         [ObservableProperty] private string nuevoUsuarioPass;
-        [ObservableProperty] private string nuevoUsuarioRol; // Seleccionado en el Combo
+        [ObservableProperty] private string nuevoUsuarioRol; 
 
         public ObservableCollection<Usuario> ListaUsuarios { get; set; }
         public List<string> ListaRoles { get; } = new List<string> { "Admin", "cajero" };
         
         private async Task CargarDatos()
         {
-            // 1. Buscamos la configuración en la BD
+           
             _configActual = await _configService.ObtenerConfigAsync();
 
-            // 2. Pasamos los datos a la pantalla
+           
             NombreNegocio = _configActual.NombreNegocio;
             ImprimirTicket = _configActual.ImprimirTicket;
             UsarControlCaja = _configActual.UsarControlCaja;
             NombreImpresora = _configActual.NombreImpresora;
-            // DireccionNegocio = ... (si agregas el campo a la entidad después)
+           
 
             CargarImpresorasSistema();
         }
@@ -93,10 +93,9 @@ namespace puntoDeVenta.ViewModels
             // Crear
             var nuevo = new Usuario
             {
-                NombreUsuario = NuevoUsuarioNombre,
-                // Password = NuevoUsuarioPass, <--- ¡BORRA ESTA LÍNEA! No guardes texto plano
+                NombreUsuario = NuevoUsuarioNombre,              
                 Rol = NuevoUsuarioRol,
-                NombreCompleto = NuevoUsuarioNombre, // Opcional
+                NombreCompleto = NuevoUsuarioNombre, 
                 Activo = true
             };
 
@@ -137,11 +136,11 @@ namespace puntoDeVenta.ViewModels
                 var server = new LocalPrintServer();
                 foreach (var cola in server.GetPrintQueues())
                 {
-                    ListaImpresoras.Add(cola.Name); // Ej: "Microsoft Print to PDF", "EPSON T20"
+                    ListaImpresoras.Add(cola.Name); 
                 }
                 OnPropertyChanged(nameof(ListaImpresoras));
             }
-            catch { /* Ignorar si no hay permisos de impresora */ }
+            catch { }
         }
 
         [RelayCommand]
@@ -149,13 +148,13 @@ namespace puntoDeVenta.ViewModels
         {
             try
             {
-                // 1. Actualizamos el objeto original
+                
                 _configActual.NombreNegocio = NombreNegocio;
                 _configActual.ImprimirTicket = ImprimirTicket;
                 _configActual.UsarControlCaja = UsarControlCaja;
                 _configActual.NombreImpresora = NombreImpresora;
 
-                // 2. Guardamos en BD
+                
                 await _configService.GuardarConfigAsync(_configActual);
 
                 MessageBox.Show("¡Configuración guardada correctamente!", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);

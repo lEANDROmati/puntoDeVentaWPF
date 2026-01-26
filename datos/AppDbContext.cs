@@ -8,7 +8,7 @@ namespace Datos
 {
     public class AppDbContext : DbContext
     {
-        // Esta línea le dice a EF que cree una tabla 
+       
         public DbSet<Producto> Productos { get; set; }
         public DbSet<Venta> Ventas { get; set; }
         public DbSet<DetalleVenta> DetallesVenta { get; set; }
@@ -21,39 +21,39 @@ namespace Datos
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             // -----------------------------------------------------------------------
-            // LÓGICA PARA MOVER LA DB A UNA CARPETA SEGURA (APPDATA)
+            //  MOVER LA DB A UNA CARPETA (APPDATA)
             // -----------------------------------------------------------------------
 
-            // 1. Definimos el nombre de la base de datos
+            
             string nombreBD = "MiPuntoVenta.db";
 
-            // 2. Buscamos la ruta segura del usuario: C:\Users\TuUsuario\AppData\Local\MiPuntoVenta
+           
             string carpetaUsuario = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            string carpetaMiApp = Path.Combine(carpetaUsuario, "MiPuntoVentaData"); // Carpeta propia para tu app
+            string carpetaMiApp = Path.Combine(carpetaUsuario, "MiPuntoVentaData"); 
             string rutaFinalDB = Path.Combine(carpetaMiApp, nombreBD);
 
-            // 3. Si la carpeta en AppData no existe, la creamos
+            // AppData no existe, se crea la carpeta
             if (!Directory.Exists(carpetaMiApp))
             {
                 Directory.CreateDirectory(carpetaMiApp);
             }
 
-            // 4. Si la base de datos NO existe en AppData (es la primera vez que corre),
-            //    la buscamos en la carpeta de instalación y la copiamos.
+            // Si la base de datos NO existe en AppData (es la primera vez que corre)
+            
             if (!File.Exists(rutaFinalDB))
             {
                 // Ruta de instalación (donde está el .exe)
                 string directorioBase = AppDomain.CurrentDomain.BaseDirectory;
                 string rutaOriginalDB = Path.Combine(directorioBase, nombreBD);
 
-                // Si existe el archivo "molde" que dejó el instalador, lo copiamos
+                // Si existe el archivo que dejó el instalador, lo copiamos
                 if (File.Exists(rutaOriginalDB))
                 {
                     File.Copy(rutaOriginalDB, rutaFinalDB);
                 }
             }
 
-            // 5. Nos conectamos a la base de datos que está en AppData
+            // conectamos a la base de datos que está en AppData
             optionsBuilder.UseSqlite($"Data Source={rutaFinalDB}");
         }
 
@@ -61,7 +61,7 @@ namespace Datos
         {
             base.OnModelCreating(modelBuilder);
 
-            // Crear Categoría por defecto
+            
             modelBuilder.Entity<Categoria>().HasData(
                 new Categoria { Id = 1, Nombre = "General", Activo = true }
             );

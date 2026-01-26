@@ -6,8 +6,8 @@ namespace Negocio.DTO
 {
     public class ReporteDto
     {
-        public string Etiqueta { get; set; } // Ej: "Coca Cola" o "Bebidas"
-        public decimal TotalVendido { get; set; } // Dinero recaudado
-        public int CantidadVendida { get; set; } // Unidades vendidas
+        public string Etiqueta { get; set; } 
+        public decimal TotalVendido { get; set; } 
+        public int CantidadVendida { get; set; } 
     }
 }

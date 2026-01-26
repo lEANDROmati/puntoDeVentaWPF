@@ -1,7 +1,7 @@
 ﻿using Entidades;
 using System;
 using System.Collections.Generic;
-using System.Printing; // Necesario para manejar impresoras
+using System.Printing; 
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -11,12 +11,12 @@ namespace puntoDeVenta.Services
 {
     public class ImpresionService
     {
-        private const double ANCHO_PAGINA = 280; // Ajustado a 80mm estándar
+        private const double ANCHO_PAGINA = 280; 
         private readonly FontFamily FUENTE_TICKET = new FontFamily("Consolas");
 
         public void ImprimirTicket(Venta venta, List<DetalleVenta> detalles, decimal pagoCon, decimal cambio, Configuracion config)
         {
-            // 1. Crear el documento (igual que antes)
+           
             FlowDocument doc = CrearDocumentoVisual(venta, detalles, pagoCon, cambio, config);
 
             // 2. IMPRESIÓN SILENCIOSA
@@ -26,11 +26,11 @@ namespace puntoDeVenta.Services
 
                 if (!string.IsNullOrEmpty(config.NombreImpresora))
                 {
-                    // Intentamos usar la impresora configurada
+                   
                     pd.PrintQueue = new LocalPrintServer().GetPrintQueue(config.NombreImpresora);
                 }
 
-                // Ajustamos el ancho "virtual" al real de la impresora
+                
                 doc.PageWidth = pd.PrintableAreaWidth;
                 if (doc.PageWidth <= 0) doc.PageWidth = ANCHO_PAGINA; // Fallback por si falla la detección
 
@@ -39,8 +39,7 @@ namespace puntoDeVenta.Services
             }
             catch (Exception)
             {
-                // Si falla la impresora configurada (está apagada o cambió de nombre),
-                // abrimos el diálogo tradicional como respaldo.
+                
                 MessageBox.Show("No se encontró la impresora configurada. Seleccione una manualmente.", "Aviso Impresión");
                 PrintDialog pdManual = new PrintDialog();
                 if (pdManual.ShowDialog() == true)
@@ -55,7 +54,7 @@ namespace puntoDeVenta.Services
         private FlowDocument CrearDocumentoVisual(Venta venta, List<DetalleVenta> detalles, decimal pagoCon, decimal cambio, Configuracion config)
         {
             FlowDocument doc = new FlowDocument();
-            doc.PagePadding = new Thickness(2); // Márgenes mínimos para ahorrar papel
+            doc.PagePadding = new Thickness(2); 
             doc.ColumnWidth = ANCHO_PAGINA;
             doc.FontFamily = FUENTE_TICKET;
             doc.FontSize = 10;

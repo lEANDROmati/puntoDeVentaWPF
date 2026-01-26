@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Negocio;       // Tu capa de negocio
-using Entidades;     // Tus entidades
+using Negocio;       
+using Entidades;     
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Linq;
@@ -27,7 +27,7 @@ namespace puntoDeVenta.ViewModels
             {
                 if (SetProperty(ref categoriaSeleccionada, value))
                 {
-                    // Al seleccionar de la lista, llenamos los campos de texto
+                  
                     if (value != null)
                     {
                         NombreCategoria = value.Nombre;
@@ -75,15 +75,13 @@ namespace puntoDeVenta.ViewModels
             Unidades = new ObservableCollection<UnidadMedida>(units);
         }
 
-        // ==========================================
-        // COMANDOS CATEGORÍAS
-        // ==========================================
+        
 
         [RelayCommand]
         private void NuevaCategoria()
         {
-            CategoriaSeleccionada = null; // Deseleccionar
-            NombreCategoria = "";         // Limpiar
+            CategoriaSeleccionada = null; 
+            NombreCategoria = "";         
         }
 
         [RelayCommand]
@@ -93,13 +91,14 @@ namespace puntoDeVenta.ViewModels
 
             var cat = CategoriaSeleccionada ?? new Categoria();
             cat.Nombre = NombreCategoria;
-            cat.Activo = true; // Por defecto
+            cat.Activo = true; 
 
-            await _categoriaService.GuardarAsync(cat); // Asegúrate que tu servicio tenga este método
+            await _categoriaService.GuardarAsync(cat); 
 
-            NuevaCategoria(); // Limpiar
-            await CargarDatos();    // Refrescar lista
+            NuevaCategoria(); 
+            await CargarDatos();  
         }
+
 
         [RelayCommand]
         private async Task EliminarCategoria()
@@ -113,9 +112,7 @@ namespace puntoDeVenta.ViewModels
             await CargarDatos();
         }
 
-        // ==========================================
-        // COMANDOS UNIDADES
-        // ==========================================
+     
 
         [RelayCommand]
         private void NuevaUnidad()

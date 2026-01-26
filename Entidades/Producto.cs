@@ -11,33 +11,32 @@ namespace Entidades
         [Key]
         public int Id { get; set; }
 
-        // --- IDENTIFICACIÓN ---
+      
         [Required]
         [MaxLength(50)]
-        public string CodigoBarras { get; set; } // Para el escáner
+        public string CodigoBarras { get; set; }
 
         [Required]
         [MaxLength(100)]
         public string Nombre { get; set; }
 
-        // --- PRECIOS Y COSTOS ---
+        
         [Column(TypeName = "decimal(18,2)")]
-        public decimal PrecioCompra { get; set; } // Costo
+        public decimal PrecioCompra { get; set; } 
 
         [Column(TypeName = "decimal(18,2)")]
-        public decimal PrecioVenta { get; set; } // Al público
+        public decimal PrecioVenta { get; set; } 
 
-        public bool TieneIVA { get; set; } = true; // Si este producto paga impuesto
-
-        // --- STOCK ---
+        public bool TieneIVA { get; set; } = true; 
+        
         public int Stock { get; set; }
-        public int StockMinimo { get; set; } = 5; // Para alertas
-        public bool ControlarStock { get; set; } = true; // Servicios (ej: Flete) no usan stock
+        public int StockMinimo { get; set; } = 5; 
+        public bool ControlarStock { get; set; } = true; 
 
-        // --- ESTADO ---
-        public bool Activo { get; set; } = true; // Soft Delete
+       
+        public bool Activo { get; set; } = true;
 
-        // --- RELACIONES (FOREIGN KEYS) ---
+        
         public int? CategoriaId { get; set; }
         [ForeignKey("CategoriaId")]
         public virtual Categoria Categoria { get; set; }

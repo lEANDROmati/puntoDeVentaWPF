@@ -19,7 +19,7 @@ namespace Negocio
             _context = new AppDbContext();
         }
 
-        // 1. Obtener lista completa (con relaciones para ver nombres de Categoria/Unidad)
+        
         
         
         public async Task<List<ProductoDto>> GetAllAsync()
@@ -31,7 +31,7 @@ namespace Negocio
                             .Where(p => p.Activo)
                             .ToListAsync();
 
-            // 2. Convertimos a DTO y aplicamos la LÓGICA DE NEGOCIO aquí
+            
             var listaDto = new List<ProductoDto>();
 
             foreach (var p in productos)
@@ -49,7 +49,7 @@ namespace Negocio
                     StockMinimo = p.StockMinimo
                 };
 
-                // --- LÓGICA DE NEGOCIO (Aquí es donde pertenece) ---
+              
 
                 // 1. Calcular Margen
                 if (p.PrecioVenta > 0)
@@ -73,19 +73,18 @@ namespace Negocio
 
         public async Task<Producto> GetByIdAsync(int id)
         {
-            // Buscamos el producto real para editarlo
-            // No necesitamos .Include aquí porque los Combos de la ventana cargan sus propias listas
+           
             return await _context.Productos.FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        // 2. Buscar por código (para validaciones y ventas)
+       
         public async Task<Producto> GetByCodigoAsync(string codigo)
         {
             return await _context.Productos
                            .FirstOrDefaultAsync(p => p.CodigoBarras == codigo && p.Activo);
         }
 
-        // 3. Guardar o Editar (Con Validaciones Profesionales)
+       
         public async Task GuardarAsync(Producto producto)
         {
             // Validaciones Básicas
@@ -123,25 +122,25 @@ namespace Negocio
             await _context.SaveChangesAsync();
         }
 
-        // 4. Eliminar (Soft Delete)
+        
         public async Task DeleteAsync(int id)
         {
             var prod = await _context.Productos.FindAsync(id);
             if (prod != null)
             {
-                prod.Activo = false; // Lo ocultamos, no lo borramos
+                prod.Activo = false; 
                 _context.Productos.Update(prod);
                 await _context.SaveChangesAsync();
             }
         }
 
-        // 5. Búsqueda para el Buscador de Ventas (Nombre o Código)
+        
         public async Task<List<Producto>> SearchAsync(string texto)
         {
             return await _context.Productos
                            .Where(p => p.Activo &&
                                       (p.Nombre.Contains(texto) || p.CodigoBarras.Contains(texto)))
-                           .Take(20) // Limitamos a 20 para no saturar
+                           .Take(50) // Limitado a 50
                            .ToListAsync();
         }
     }

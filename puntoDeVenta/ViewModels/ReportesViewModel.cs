@@ -16,7 +16,7 @@ namespace puntoDeVenta.ViewModels
         private readonly ReporteService _reporteService;
 
         // Filtros
-        [ObservableProperty] private DateTime fechaInicio = DateTime.Now.AddDays(-30); // Último mes por defecto
+        [ObservableProperty] private DateTime fechaInicio = DateTime.Now.AddDays(-30); 
         [ObservableProperty] private DateTime fechaFin = DateTime.Now;
 
         // Listas para las tablas

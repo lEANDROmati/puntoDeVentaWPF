@@ -1,7 +1,7 @@
 ﻿using Datos;
 using DocumentFormat.OpenXml.InkML;
 using Entidades;
-using Microsoft.EntityFrameworkCore; // Necesario para .Include()
+using Microsoft.EntityFrameworkCore; 
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,30 +20,30 @@ namespace Negocio
 
         public async Task<int> GuardarVentaAsync(decimal total, List<DetalleVenta> detalles, decimal importe, string metodoPago)
         {
-            // Transacción: O se guarda todo, o no se guarda nada (Seguridad)
+           
             using (var transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
                 {
-                    // 1. Crear la Venta (Cabecera)
+                   
                     var nuevaVenta = new Venta
                     {
                         Fecha = DateTime.Now,
                         Total = total,
-                        Importe = importe,       // Guardamos cuánto pagó
-                        MetodoPago = metodoPago, // Guardamos cómo pagó (Efectivo/Tarjeta/QR)
+                        Importe = importe,      
+                        MetodoPago = metodoPago, 
                         UsuarioId = SesionActual.Usuario.Id
-                       //UsuarioId = 1 // Temporal hasta tener sesión
+                       
                     };
 
                     await _context.Ventas.AddAsync(nuevaVenta);
-                    await _context.SaveChangesAsync(); // Guardamos para obtener el ID
+                    await _context.SaveChangesAsync(); 
 
-                    // 2. Procesar Detalles y Stock
+                    //  Procesar Detalles y Stock
                     foreach (var item in detalles)
                     {
                         item.VentaId = nuevaVenta.Id;
-                        item.Producto = null; // Limpiamos referencia para evitar duplicados
+                        item.Producto = null; 
                         await _context.DetallesVenta.AddAsync(item);
 
                         // Descontar Stock
@@ -61,13 +61,13 @@ namespace Negocio
                     }
 
                     await _context.SaveChangesAsync();
-                    await transaction.CommitAsync(); // Confirmar cambios
+                    await transaction.CommitAsync(); 
                     return nuevaVenta.Id;
                 }
 
                 catch (Exception)
                 {
-                    await transaction.RollbackAsync(); // Deshacer si hubo error
+                    await transaction.RollbackAsync(); 
                     throw;
                 }
             }
@@ -77,15 +77,15 @@ namespace Negocio
         {
             using (var _context = new AppDbContext())
             {
-                // Truco: Ajustamos la hora para abarcar todo el día final (23:59:59)
+                
                 DateTime fechaFin = hasta.Date.AddDays(1).AddTicks(-1);
                 DateTime fechaInicio = desde.Date;
 
                 return await _context.Ventas
-                               .Include(v => v.Detalles)          // Traer los detalles
-                               .ThenInclude(d => d.Producto)      // Traer nombre del producto en el detalle
+                               .Include(v => v.Detalles)          
+                               .ThenInclude(d => d.Producto)     
                                .Where(v => v.Fecha >= fechaInicio && v.Fecha <= fechaFin)
-                               .OrderByDescending(v => v.Fecha)   // Las más nuevas arriba
+                               .OrderByDescending(v => v.Fecha)   
                                .ToListAsync();
             }
         }

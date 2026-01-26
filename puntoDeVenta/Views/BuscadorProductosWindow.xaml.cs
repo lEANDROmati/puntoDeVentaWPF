@@ -19,10 +19,10 @@ namespace puntoDeVenta.Views
     {
         private readonly ProductoService _productoService;
 
-        // CORRECCIÓN 1: Usamos la lista de DTOs, no de Entidades
+        
         private List<ProductoDto> _todosLosProductos;
 
-        // CORRECCIÓN 2: Lo que seleccionas es un DTO
+       
         public ProductoDto ProductoSeleccionado { get; private set; }
 
         public BuscadorProductosWindow()
@@ -42,7 +42,7 @@ namespace puntoDeVenta.Views
 
         private async void CargarDatos()
         {
-            // Ahora sí coinciden los tipos (List<ProductoDto>)
+           
             _todosLosProductos = await _productoService.GetAllAsync();
             gridProductos.ItemsSource = _todosLosProductos;
         }
@@ -53,10 +53,9 @@ namespace puntoDeVenta.Views
 
             if (_todosLosProductos == null) return;
 
-            // CORRECCIÓN 3: Filtramos usando "CodigoBarras" (tu nombre real)
+            
             var filtrados = _todosLosProductos.Where(p =>
                 (p.Nombre != null && p.Nombre.ToLower().Contains(filtro)) ||
-                // Usamos ?. por si es null, y "CodigoBarras"
                 (p.CodigoBarras != null && p.CodigoBarras.ToLower().Contains(filtro))
             ).ToList();
 
@@ -65,7 +64,7 @@ namespace puntoDeVenta.Views
 
         private void ConfirmarSeleccion()
         {
-            // Casteamos a ProductoDto
+           
             if (gridProductos.SelectedItem is ProductoDto p)
             {
                 ProductoSeleccionado = p;

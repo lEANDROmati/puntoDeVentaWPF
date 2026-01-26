@@ -23,24 +23,24 @@ namespace puntoDeVenta.Views
             InitializeComponent();
             _usuarioService = new UsuarioService();
 
-            // Foco inicial en usuario
+            
             txtUsuario.Focus();
         }
 
-        // 1. PERMITIR ARRASTRAR LA VENTANA (Porque quitamos los bordes)
+      
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
                 this.DragMove();
         }
 
-        // 2. BOTÓN CERRAR (X)
+       
         private void BtnCerrar_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
         }
 
-        // 3. LÓGICA DE LOGIN
+       
         private async void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
             string user = txtUsuario.Text;
@@ -52,19 +52,19 @@ namespace puntoDeVenta.Views
                 return;
             }
 
-            // Llamamos al servicio
+           
             var usuarioEncontrado = await _usuarioService.LoginAsync(user, pass);
 
             if (usuarioEncontrado != null)
             {
-                // Guardamos la sesión
+                
                 SesionActual.Usuario = usuarioEncontrado;
 
-                // Abrimos la ventana principal
+              
                 MainWindow main = new MainWindow();
                 main.Show();
 
-                // Cerramos el login
+                
                 this.Close();
             }
             else

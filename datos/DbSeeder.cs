@@ -10,21 +10,20 @@ namespace Datos
     {
         public static void Inicializar(AppDbContext context)
         {
-            // 1. Verificamos si ya existe algún usuario
+           
             if (context.Usuarios.Any())
             {
-                return; // La base de datos ya tiene usuarios, no hacemos nada.
+                return; 
             }
 
-            // 2. Si no hay usuarios, creamos el Admin
-            // Aquí SÍ podemos usar lógica dinámica como BCrypt sin romper migraciones
+            
             var admin = new Usuario
             {
                 NombreUsuario = "admin",
                 NombreCompleto = "Administrador",
                 Rol = "Admin",
                 Activo = true,
-                // Generamos el hash en tiempo de ejecución
+                
                 Password = BCrypt.Net.BCrypt.HashPassword("123")
             };
             context.SaveChanges();
@@ -42,19 +41,19 @@ namespace Datos
             context.SaveChanges();
 
             // -----------------------------------------------------------
-            // 3. GENERADOR DE 100 PRODUCTOS
+            // GENERADOR DE 100 PRODUCTOS
             // -----------------------------------------------------------
             if (!context.Productos.Any())
             {
                 var random = new Random();
                 var productosGenerados = new List<Producto>();
 
-                // Buscamos los IDs de las categorías y unidades para asignarlos bien
+               
                 var cats = context.Categorias.ToDictionary(c => c.Nombre, c => c.Id);
-                int idUnidad = 1; // Asumiendo 1 es Unidad (según tu AppDbContext)
-                int idKilo = 2;   // Asumiendo 2 es Kg
+                int idUnidad = 1; 
+                int idKilo = 2;   
 
-                // Banco de Datos para generar nombres reales
+               
                 var datosSemilla = new[]
                 {
                     new { Cat = "Bebidas",    Unidad = idUnidad, Nombres = new[] { "Coca Cola", "Sprite", "Fanta", "Manaos", "Pepsi", "Agua Villavicencio", "Cerveza Quilmes", "Vino Toro", "Jugo Tang", "Gatorade" } },
@@ -69,25 +68,25 @@ namespace Datos
                 // Bucle para crear exactamente 100 productos
                 for (int i = 0; i < 100; i++)
                 {
-                    // 1. Elegimos una categoría al azar
+                   
                     var grupo = datosSemilla[random.Next(datosSemilla.Length)];
 
-                    // 2. Elegimos un nombre base y le agregamos variedad
+                    
                     string nombreBase = grupo.Nombres[random.Next(grupo.Nombres.Length)];
                     string[] variedades = { "Clásico", "Light", "Extra", "Grande", "Chico", "Especial", "Premium" };
                     string variedad = variedades[random.Next(variedades.Length)];
 
-                    // 3. Calculamos precios
+                   
                     decimal costo = random.Next(500, 5000); // Costo entre $500 y $5000
                     decimal venta = costo * (decimal)(1.30 + (random.NextDouble() * 0.40)); // Margen entre 30% y 70%
 
                     productosGenerados.Add(new Producto
                     {
-                        CodigoBarras = "779" + random.Next(100000000, 999999999).ToString(), // Código EAN ficticio
+                        CodigoBarras = "779" + random.Next(100000000, 999999999).ToString(),
                         Nombre = $"{nombreBase} {variedad}",
                         PrecioCompra = Math.Round(costo, 2),
                         PrecioVenta = Math.Round(venta, 2),
-                        Stock = random.Next(0, 50), // Stock entre 0 y 50
+                        Stock = random.Next(0, 50), 
                         StockMinimo = 5,
                         CategoriaId = cats.ContainsKey(grupo.Cat) ? cats[grupo.Cat] : cats.Values.First(),
                         UnidadMedidaId = grupo.Unidad,

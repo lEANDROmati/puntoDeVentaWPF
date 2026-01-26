@@ -14,9 +14,7 @@ using System.Windows.Shapes;
 
 namespace puntoDeVenta.Views
 {
-    /// <summary>
-    /// Lógica de interacción para InventarioView.xaml
-    /// </summary>
+   
     public partial class InventarioView : UserControl
     {
         public InventarioView()
@@ -26,10 +24,10 @@ namespace puntoDeVenta.Views
         }
         private void InventarioView_Loaded(object sender, System.Windows.RoutedEventArgs e)
         {
-            // Obtenemos el cerebro (ViewModel) que está conectado a esta vista
+          
             if (this.DataContext is InventarioViewModel viewModel)
             {
-                // ¡Le ordenamos recargar los datos de la BD!
+               
                 viewModel.CargarDatos();
             }
         }

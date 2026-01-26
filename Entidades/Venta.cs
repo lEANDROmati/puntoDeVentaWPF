@@ -24,7 +24,7 @@ namespace Entidades
 
         public int UsuarioId { get; set; }
 
-        // RELACIÓN: Una venta tiene muchos detalles
+       
         public List<DetalleVenta> Detalles { get; set; } = new List<DetalleVenta>();
     }
 }   

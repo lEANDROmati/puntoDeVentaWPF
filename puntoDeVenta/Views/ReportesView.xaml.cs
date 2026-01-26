@@ -13,9 +13,7 @@ using System.Windows.Shapes;
 
 namespace puntoDeVenta.Views
 {
-    /// <summary>
-    /// Lógica de interacción para ReportesView.xaml
-    /// </summary>
+   
     public partial class ReportesView : UserControl
     {
         public ReportesView()

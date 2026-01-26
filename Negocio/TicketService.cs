@@ -11,7 +11,7 @@ namespace Negocio
         public async Task ImprimirTicketAsync(Venta venta, string nombreNegocio)
         {
             // AQUÍ IRÍA LA LÓGICA DE IMPRESORA REAL (ESC/POS)
-            // Por ahora, generaremos un archivo de texto en el escritorio como simulación
+            // Por ahora,  un archivo de texto en el escritorio como simulación
 
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("================================");

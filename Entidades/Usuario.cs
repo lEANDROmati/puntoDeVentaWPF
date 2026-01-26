@@ -12,13 +12,13 @@ namespace Entidades
 
         [Required]
         [MaxLength(50)]
-        public string NombreUsuario { get; set; } // El que usa para loguearse (ej: "admin")
+        public string NombreUsuario { get; set; } 
 
         [Required]
-        public string Password { get; set; }      // La contraseña
+        public string Password { get; set; }     
 
         [MaxLength(100)]
-        public string? NombreCompleto { get; set; } // Nombre real (ej: "Juan Perez")
+        public string? NombreCompleto { get; set; } 
 
         public string Rol { get; set; } = "Cajero"; // "Admin" o "Cajero"
         public bool Activo { get; set; } = true;

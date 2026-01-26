@@ -10,7 +10,7 @@ namespace puntoDeVenta.Views
     {
         private decimal _total;
 
-        // Propiedades para que el ViewModel las lea al cerrar
+        
         public decimal PagoRealizado { get; private set; }
         public string MetodoPagoSeleccionado { get; private set; }
 
@@ -20,16 +20,16 @@ namespace puntoDeVenta.Views
             _total = total;
             lblTotal.Text = _total.ToString("C2");
 
-            // Valor inicial
+            
             MetodoPagoSeleccionado = "Efectivo";
             txtPago.Focus();
         }
 
-        // --- LÓGICA INTELIGENTE DE PAGO ---
+       
         private void CmbMetodoPago_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // --- LÍNEA DE SEGURIDAD ---
-            // Si la ventana se está cargando y txtPago aún no existe, salimos.
+            
+            
             if (txtPago == null) return;
             // --------------------------
 
@@ -67,7 +67,7 @@ namespace puntoDeVenta.Views
 
         private void TxtPago_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            // Solo números y puntos/comas
+           
             Regex regex = new Regex("[^0-9,.]");
             e.Handled = regex.IsMatch(e.Text);
         }
@@ -76,8 +76,7 @@ namespace puntoDeVenta.Views
         {
             if (decimal.TryParse(txtPago.Text, out decimal pagaCon))
             {
-                // Validación: No puede pagar menos del total (especialmente en efectivo)
-                // Nota: Usamos una pequeña tolerancia de 0.01 por temas de redondeo
+
                 if (pagaCon < _total - 0.01m)
                 {
                     MessageBox.Show("El pago es insuficiente.", "Atención", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -85,7 +84,7 @@ namespace puntoDeVenta.Views
                 }
 
                 PagoRealizado = pagaCon;
-                this.DialogResult = true; // Cierra con OK
+                this.DialogResult = true; 
             }
             else
             {

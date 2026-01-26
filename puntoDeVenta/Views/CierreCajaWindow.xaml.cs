@@ -18,19 +18,19 @@ namespace puntoDeVenta.Views
         public decimal MontoRealEnCaja { get; private set; }
         private decimal _montoEsperado;
 
-        // Modificamos el constructor para recibir el esperado
+        
         public CierreCajaWindow(decimal montoEsperado)
         {
             InitializeComponent();
             _montoEsperado = montoEsperado;
 
-            // Mostramos el monto esperado en el texto que agregaremos en el paso 2
+            
             lblEsperado.Text = $"Sistema espera: ${_montoEsperado:N2}";
 
             // Foco rápido
             Loaded += (s, e) => { txtMonto.Focus(); txtMonto.SelectAll(); };
 
-            // Evento para calcular diferencia en tiempo real mientras escribes
+            
             txtMonto.TextChanged += TxtMonto_TextChanged;
         }
 
@@ -41,7 +41,7 @@ namespace puntoDeVenta.Views
                 decimal diferencia = real - _montoEsperado;
                 lblDiferencia.Text = $"Diferencia: ${diferencia:N2}";
 
-                // Verde si sobra o está exacto, Rojo si falta
+                
                 lblDiferencia.Foreground = diferencia >= 0 ? Brushes.Green : Brushes.Red;
             }
         }

@@ -5,9 +5,7 @@ using System.Windows;
 
 namespace puntoDeVenta
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
+    
     public partial class App : Application
     {
   protected override void OnStartup(StartupEventArgs e)
@@ -16,8 +14,7 @@ namespace puntoDeVenta
 
             using (var context = new AppDbContext())
             {
-                // Crea la base de datos y aplica todas las migraciones pendientes
-                // (Incluyendo la creación del usuario Admin)
+                
                 context.Database.Migrate();
 
                 DbSeeder.Inicializar(context);
